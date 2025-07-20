@@ -16,7 +16,7 @@ const marketData = [
     txns: "0",
     ratio: "0 / 0",
     icon: "V",
-    color: "bg-gray-500",
+    color: "bg-muted",
     id: "volne-mon",
   },
   {
@@ -31,7 +31,7 @@ const marketData = [
     txns: "0",
     ratio: "0 / 0",
     icon: "N",
-    color: "bg-green-500",
+    color: "bg-primary",
     id: "norfo-mon",
   },
   {
@@ -46,7 +46,7 @@ const marketData = [
     txns: "0",
     ratio: "0 / 0",
     icon: "C",
-    color: "bg-purple-500",
+    color: "bg-accent",
     id: "capac-mon",
   },
   {
@@ -61,7 +61,7 @@ const marketData = [
     txns: "0",
     ratio: "0 / 0",
     icon: "A",
-    color: "bg-gray-600",
+    color: "bg-muted",
     id: "ap-mon",
   },
   {
@@ -76,7 +76,7 @@ const marketData = [
     txns: "0",
     ratio: "0 / 0",
     icon: "U",
-    color: "bg-yellow-600",
+    color: "bg-accent",
     id: "usabi-mon",
   },
   {
@@ -91,7 +91,7 @@ const marketData = [
     txns: "0",
     ratio: "0 / 0",
     icon: "Q",
-    color: "bg-yellow-500",
+    color: "bg-accent",
     id: "qwer-mon",
   },
   {
@@ -106,7 +106,7 @@ const marketData = [
     txns: "2",
     ratio: "2 / 0",
     icon: "N",
-    color: "bg-gradient-to-r from-black to-white",
+    color: "bg-gradient-to-r from-foreground to-muted-foreground",
     id: "nadsg-mon",
   },
   {
@@ -121,46 +121,46 @@ const marketData = [
     txns: "1",
     ratio: "1 / 1",
     icon: "F",
-    color: "bg-blue-500",
+    color: "bg-primary",
     id: "fyoxsu0fn-mon",
   },
 ]
 
 export function ProMarketsTable() {
   return (
-    <div className="bg-gray-900 text-white">
+    <div className="bg-background text-foreground">
       <div className="px-6 py-4">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-4">
             <div className="relative">
-              <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
               <Input
                 type="text"
                 placeholder="Search markets"
-                className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 pl-10 text-sm focus:outline-none focus:border-green-400 text-white placeholder-gray-400"
+                className="bg-background border border-border rounded-lg px-4 py-2 pl-10 text-sm focus:outline-none focus:border-primary text-foreground placeholder-muted-foreground"
               />
             </div>
-            <Button variant="ghost" className="text-gray-400 hover:text-white">
+            <Button variant="ghost" className="text-muted-foreground hover:text-foreground">
               Watchlist
             </Button>
           </div>
           <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-400">Quick buy</span>
-            <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+            <span className="text-sm text-muted-foreground">Quick buy</span>
+            <div className="w-3 h-3 bg-primary rounded-full"></div>
           </div>
         </div>
 
         <div className="flex items-center space-x-4 mb-6">
-          <Button variant="ghost" className="text-gray-400 hover:text-white">
+          <Button variant="ghost" className="text-muted-foreground hover:text-foreground">
             Trending
           </Button>
-          <Button className="bg-green-600 hover:bg-green-700 text-white">New Pairs</Button>
+          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">New Pairs</Button>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="text-gray-400 text-sm border-b border-gray-800">
+              <tr className="text-muted-foreground text-sm border-b border-border">
                 <th className="text-left py-3 px-2">Market</th>
                 <th className="text-left py-3 px-2">Age</th>
                 <th className="text-left py-3 px-2">Price</th>
@@ -174,24 +174,24 @@ export function ProMarketsTable() {
             </thead>
             <tbody>
               {marketData.map((market, index) => (
-                <tr key={index} className="border-b border-gray-800 hover:bg-gray-800/50">
+                <tr key={index} className="border-b border-border hover:bg-accent/50">
                   <td className="py-3 px-2">
                     <Link href={`/pro/markets/${market.id}`} className="flex items-center space-x-3 hover:opacity-80">
-                      <Star className="w-4 h-4 text-gray-500" />
-                      <div className="w-2 h-4 bg-gray-600"></div>
+                      <Star className="w-4 h-4 text-muted-foreground" />
+                      <div className="w-2 h-4 bg-muted"></div>
                       <div
-                        className={`w-8 h-8 ${market.color} rounded-full flex items-center justify-center text-xs font-bold text-white`}
+                        className={`w-8 h-8 ${market.color} rounded-full flex items-center justify-center text-xs font-bold text-primary-foreground`}
                       >
                         {market.icon}
                       </div>
                       <div>
                         <div className="font-medium">{market.name}</div>
-                        <div className="text-gray-400 text-sm">/ {market.pair}</div>
+                        <div className="text-muted-foreground text-sm">/ {market.pair}</div>
                       </div>
                     </Link>
                   </td>
                   <td className="py-3 px-2">
-                    <div className="flex items-center space-x-1 text-gray-400">
+                    <div className="flex items-center space-x-1 text-muted-foreground">
                       <Clock className="w-3 h-3" />
                       <span className="text-sm">{market.age}</span>
                     </div>
@@ -199,7 +199,7 @@ export function ProMarketsTable() {
                   <td className="py-3 px-2">
                     <div className="flex items-center space-x-2">
                       <span>{market.price}</span>
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <div className="w-2 h-2 bg-primary rounded-full"></div>
                     </div>
                   </td>
                   <td className="py-3 px-2">{market.volume}</td>
@@ -209,10 +209,10 @@ export function ProMarketsTable() {
                     <span
                       className={
                         market.priceChange.includes("-")
-                          ? "text-red-400"
+                          ? "text-destructive"
                           : market.priceChange === "0%"
-                            ? "text-gray-400"
-                            : "text-green-400"
+                            ? "text-muted-foreground"
+                            : "text-primary"
                       }
                     >
                       {market.priceChange}
@@ -221,12 +221,12 @@ export function ProMarketsTable() {
                   <td className="py-3 px-2">
                     <div className="text-center">
                       <div className="text-sm">{market.txns}</div>
-                      <div className="text-xs text-green-400">{market.ratio}</div>
+                      <div className="text-xs text-primary">{market.ratio}</div>
                     </div>
                   </td>
                   <td className="py-3 px-2">
-                    <div className="w-6 h-6 bg-green-600 rounded-full flex items-center justify-center">
-                      <span className="text-xs">✓</span>
+                    <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                      <span className="text-xs text-primary-foreground">✓</span>
                     </div>
                   </td>
                 </tr>

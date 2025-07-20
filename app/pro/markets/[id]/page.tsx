@@ -1,220 +1,227 @@
-import { Header } from "@/components/header"
-import { MarketDetailSidebar } from "@/components/market-detail-sidebar"
-import { Button } from "@/components/ui/button"
-import { ArrowLeft, TrendingUp, BarChart3, Activity, AlertTriangle } from "lucide-react"
 import Link from "next/link"
+import { ArrowLeft, Calendar, DollarSign, TrendingUp, Shield, Users, Clock, PieChart, CheckCircle, AlertTriangle } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 
 export default function MarketDetailPage({ params }: { params: { id: string } }) {
-  const navItems = ["Markets", "Portfolio", "History"]
-
   return (
-    <div className="min-h-screen bg-gray-900">
-      <Header navItems={navItems} />
-
-      <div className="p-6">
-        {/* Back Button */}
-        <Link href="/pro/markets" className="inline-flex items-center space-x-2 text-gray-400 hover:text-white mb-6">
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-8">
+        <Link href="/pro/markets" className="inline-flex items-center space-x-2 text-muted-foreground hover:text-foreground mb-6">
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Markets</span>
         </Link>
 
-        <div className="grid lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-3 space-y-6">
-            {/* Header */}
-            <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-              <div className="flex items-center justify-between mb-4">
+          <div className="lg:col-span-2 space-y-6">
+            {/* Market Header */}
+            <div className="bg-card rounded-lg p-6 border border-border">
+              <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-lg font-bold">C</span>
+                  <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center">
+                    <Shield className="w-6 h-6 text-primary-foreground" />
                   </div>
                   <div>
-                    <h1 className="text-2xl font-bold text-white">FinCards Receivables Pool Amoy</h1>
-                    <p className="text-gray-400">CAPAC / MON</p>
+                    <h1 className="text-2xl font-bold text-foreground mb-2">CAPAC / MON</h1>
+                    <p className="text-muted-foreground">Sharia-Compliant Trade Finance</p>
                   </div>
                 </div>
                 <div className="flex space-x-2">
-                  <Button variant="outline" size="sm" className="border-gray-600 text-gray-300 bg-transparent">
-                    Overview
+                  <Button variant="outline" size="sm" className="border-border text-muted-foreground bg-transparent">
+                    <Calendar className="w-4 h-4 mr-2" />
+                    Active
                   </Button>
-                  <Button variant="outline" size="sm" className="border-gray-600 text-gray-300 bg-transparent">
-                    Details
+                  <Button variant="outline" size="sm" className="border-border text-muted-foreground bg-transparent">
+                    <Shield className="w-4 h-4 mr-2" />
+                    Sharia
                   </Button>
-                  <Button variant="outline" size="sm" className="border-gray-600 text-gray-300 bg-transparent">
-                    Analytics
+                  <Button variant="outline" size="sm" className="border-border text-muted-foreground bg-transparent">
+                    <TrendingUp className="w-4 h-4 mr-2" />
+                    High Yield
                   </Button>
                 </div>
               </div>
-              <p className="text-gray-300 text-sm leading-relaxed">
-                FinCards is transforming capital management for Web3 teams by offering settlement liquidity for its
-                USDC-backed corporate cards. The platform enables DeFi protocols to seamlessly provide liquidity for
-                expenses through a payment system secured by collateral collateral, significantly reducing credit risk.
+              
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                This market provides financing for international trade transactions, focusing on 
+                Sharia-compliant structures. The market invests in trade receivables, letters of credit, 
+                and other trade finance instruments with strong collateral backing.
               </p>
             </div>
 
-            {/* Pool Overview */}
-            <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-              <h2 className="text-xl font-bold text-white mb-6 flex items-center">
-                <TrendingUp className="w-5 h-5 mr-2" />
-                Pool Overview
-              </h2>
-              <div className="grid grid-cols-3 gap-6">
+            {/* Market Statistics */}
+            <div className="bg-card rounded-lg p-6 border border-border">
+              <h2 className="text-xl font-semibold text-foreground mb-4">Market Statistics</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
-                  <p className="text-gray-400 text-sm mb-1">Pool Capacity</p>
-                  <p className="text-white text-lg font-bold">10M USD</p>
+                  <p className="text-muted-foreground text-sm mb-1">Pool Capacity</p>
+                  <p className="text-foreground text-lg font-semibold">10M USD</p>
                 </div>
                 <div>
-                  <p className="text-gray-400 text-sm mb-1">Total Value Locked</p>
-                  <p className="text-white text-lg font-bold">10M USD</p>
+                  <p className="text-muted-foreground text-sm mb-1">Total Value Locked</p>
+                  <p className="text-foreground text-lg font-semibold">0 USD</p>
                 </div>
                 <div>
-                  <p className="text-gray-400 text-sm mb-1">Minimum Investment</p>
-                  <p className="text-white text-lg font-bold">1K USD</p>
+                  <p className="text-muted-foreground text-sm mb-1">Minimum Investment</p>
+                  <p className="text-foreground text-lg font-semibold">1,000 USD</p>
                 </div>
                 <div>
-                  <p className="text-gray-400 text-sm mb-1">Estimated APY</p>
-                  <p className="text-green-400 text-lg font-bold">11%</p>
+                  <p className="text-muted-foreground text-sm mb-1">Estimated APY</p>
+                  <p className="text-foreground text-lg font-semibold">12.5%</p>
                 </div>
                 <div>
-                  <p className="text-gray-400 text-sm mb-1">Capital Formation</p>
-                  <p className="text-white text-lg font-bold">30 Days</p>
+                  <p className="text-muted-foreground text-sm mb-1">Capital Formation</p>
+                  <p className="text-foreground text-lg font-semibold">0%</p>
                 </div>
                 <div>
-                  <p className="text-gray-400 text-sm mb-1">Loan Term</p>
-                  <p className="text-white text-lg font-bold">7 Days</p>
+                  <p className="text-muted-foreground text-sm mb-1">Loan Term</p>
+                  <p className="text-foreground text-lg font-semibold">12 months</p>
                 </div>
                 <div>
-                  <p className="text-gray-400 text-sm mb-1">Principal Repaid</p>
-                  <p className="text-white text-lg font-bold">0.000 USD</p>
+                  <p className="text-muted-foreground text-sm mb-1">Principal Repaid</p>
+                  <p className="text-foreground text-lg font-semibold">0 USD</p>
                 </div>
                 <div>
-                  <p className="text-gray-400 text-sm mb-1">Total Repaid</p>
-                  <p className="text-white text-lg font-bold">0.000 USD</p>
+                  <p className="text-muted-foreground text-sm mb-1">Total Repaid</p>
+                  <p className="text-foreground text-lg font-semibold">0 USD</p>
                 </div>
                 <div>
-                  <p className="text-gray-400 text-sm mb-1">Interest Paid</p>
-                  <p className="text-white text-lg font-bold">0.000 USD</p>
+                  <p className="text-muted-foreground text-sm mb-1">Interest Paid</p>
+                  <p className="text-foreground text-lg font-semibold">0 USD</p>
                 </div>
               </div>
             </div>
 
-            {/* Tranche Structure */}
-            <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-              <h2 className="text-xl font-bold text-white mb-6 flex items-center">
-                <BarChart3 className="w-5 h-5 mr-2" />
-                Tranche Structure
-              </h2>
-              <div className="grid grid-cols-2 gap-8">
-                <div className="flex items-center justify-center">
-                  <div className="relative w-48 h-48">
-                    <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                      <circle cx="50" cy="50" r="40" fill="none" stroke="#374151" strokeWidth="8" />
-                      <circle
-                        cx="50"
-                        cy="50"
-                        r="40"
-                        fill="none"
-                        stroke="#8b5cf6"
-                        strokeWidth="8"
-                        strokeDasharray="87 13"
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-white">13%</div>
-                        <div className="text-gray-400 text-sm">Senior</div>
-                      </div>
-                    </div>
+            {/* Capital Structure */}
+            <div className="bg-card rounded-lg p-6 border border-border">
+              <h2 className="text-xl font-semibold text-foreground mb-4">Capital Structure</h2>
+              
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-3 h-3 bg-primary rounded-full"></div>
+                    <span className="text-foreground font-medium">Senior Tranche</span>
                   </div>
+                  <div className="text-muted-foreground text-sm">Senior</div>
                 </div>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center p-3 bg-gray-700 rounded-lg">
+                
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
                     <div>
-                      <p className="text-white font-medium">Senior Tranche Details</p>
-                      <p className="text-gray-400 text-sm">Allocation: 80%</p>
+                      <p className="text-foreground font-medium">Senior Notes</p>
+                      <p className="text-muted-foreground text-sm">Allocation: 80%</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-white font-bold">APY: 11%</p>
-                      <p className="text-gray-400 text-sm">0 USD</p>
+                      <p className="text-foreground font-semibold">0 USD</p>
+                      <p className="text-muted-foreground text-sm">8.5% APY</p>
                     </div>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-gray-700 rounded-lg">
+                  
+                  <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
                     <div>
-                      <p className="text-white font-medium">Junior Tranche</p>
-                      <p className="text-gray-400 text-sm">Allocation: 20%</p>
+                      <p className="text-foreground font-medium">Junior Notes</p>
+                      <p className="text-muted-foreground text-sm">Allocation: 20%</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-white font-bold">APY: 23%</p>
-                      <p className="text-gray-400 text-sm">0 USD</p>
+                      <p className="text-foreground font-semibold">0 USD</p>
+                      <p className="text-muted-foreground text-sm">18.5% APY</p>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Pool Activity */}
-            <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-              <h2 className="text-xl font-bold text-white mb-6 flex items-center">
-                <Activity className="w-5 h-5 mr-2" />
-                Pool Activity
-              </h2>
+            {/* Recent Transactions */}
+            <div className="bg-card rounded-lg p-6 border border-border">
+              <h2 className="text-xl font-semibold text-foreground mb-4">Recent Transactions</h2>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="text-gray-400 text-sm border-b border-gray-700">
-                      <th className="text-left py-3 px-2">Action</th>
-                      <th className="text-left py-3 px-2">Amount</th>
+                    <tr className="text-muted-foreground text-sm border-b border-border">
                       <th className="text-left py-3 px-2">Date</th>
-                      <th className="text-left py-3 px-2">Status</th>
-                      <th className="text-left py-3 px-2">Hash</th>
+                      <th className="text-left py-3 px-2">Type</th>
+                      <th className="text-left py-3 px-2">Amount</th>
+                      <th className="text-left py-3 px-2">Wallet</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr className="border-b border-gray-700">
-                      <td className="py-3 px-2 text-white">Deposit</td>
-                      <td className="py-3 px-2 text-white">5,142,205</td>
-                      <td className="py-3 px-2 text-gray-400">8 Jul 2025</td>
+                    <tr className="border-b border-border">
+                      <td className="py-3 px-2 text-muted-foreground">8 Jul 2025</td>
                       <td className="py-3 px-2">
-                        <span className="text-green-400 bg-green-400/20 px-2 py-1 rounded text-xs">Success</span>
+                        <Badge variant="secondary" className="bg-primary text-primary-foreground">Investment</Badge>
                       </td>
-                      <td className="py-3 px-2 text-purple-400">0x4f1...a8b2</td>
+                      <td className="py-3 px-2 text-foreground">50,000 USD</td>
+                      <td className="py-3 px-2 text-primary">0x4f1...a8b2</td>
                     </tr>
                   </tbody>
                 </table>
               </div>
             </div>
 
-            {/* Risk Report */}
-            <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-              <h2 className="text-xl font-bold text-white mb-6 flex items-center">
-                <AlertTriangle className="w-5 h-5 mr-2" />
-                Risk Report
-              </h2>
-              <div className="grid grid-cols-2 gap-6">
+            {/* Risk Metrics */}
+            <div className="bg-card rounded-lg p-6 border border-border">
+              <h2 className="text-xl font-semibold text-foreground mb-4">Risk Metrics</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
-                  <p className="text-gray-400 text-sm mb-1">Expected to Default</p>
-                  <p className="text-white text-lg font-bold">800 USD</p>
+                  <p className="text-muted-foreground text-sm mb-1">Expected to Default</p>
+                  <p className="text-foreground text-lg font-semibold">2.5%</p>
                 </div>
                 <div>
-                  <p className="text-gray-400 text-sm mb-1">Expected Loss Given Default</p>
-                  <p className="text-white text-lg font-bold">10.5%</p>
+                  <p className="text-muted-foreground text-sm mb-1">Expected Loss Given Default</p>
+                  <p className="text-foreground text-lg font-semibold">45%</p>
                 </div>
                 <div>
-                  <p className="text-gray-400 text-sm mb-1">Probability of Default</p>
-                  <p className="text-white text-lg font-bold">0.5%</p>
+                  <p className="text-muted-foreground text-sm mb-1">Probability of Default</p>
+                  <p className="text-foreground text-lg font-semibold">Low</p>
                 </div>
                 <div>
-                  <p className="text-gray-400 text-sm mb-1">Risk Score</p>
-                  <p className="text-white text-lg font-bold">2.7/5.0</p>
+                  <p className="text-muted-foreground text-sm mb-1">Risk Score</p>
+                  <p className="text-foreground text-lg font-semibold">B+</p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Sidebar */}
-          <div className="lg:col-span-1">
-            <MarketDetailSidebar />
+          <div className="space-y-6">
+            {/* Quick Actions */}
+            <div className="bg-card rounded-lg p-6 border border-border">
+              <h3 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h3>
+              <div className="space-y-3">
+                <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
+                  <DollarSign className="w-4 h-4 mr-2" />
+                  Invest Now
+                </Button>
+                <Button variant="outline" className="w-full border-border text-foreground hover:bg-muted">
+                  <PieChart className="w-4 h-4 mr-2" />
+                  View Analytics
+                </Button>
+                <Button variant="outline" className="w-full border-border text-foreground hover:bg-muted">
+                  <Users className="w-4 h-4 mr-2" />
+                  Market Members
+                </Button>
+              </div>
+            </div>
+
+            {/* Market Status */}
+            <div className="bg-card rounded-lg p-6 border border-border">
+              <h3 className="text-lg font-semibold text-foreground mb-4">Market Status</h3>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Status</span>
+                  <Badge variant="secondary" className="bg-primary text-primary-foreground">Active</Badge>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Next Distribution</span>
+                  <span className="text-foreground">15 Aug 2025</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Maturity Date</span>
+                  <span className="text-foreground">15 Jul 2026</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -31,12 +31,12 @@ export function Header({ centerNavItem, navItems }: HeaderProps) {
   }
 
   return (
-    <header className="border-b border-gray-800 bg-gray-900">
+    <header className="border-b border-secondary bg-background">
       <div className="flex items-center justify-between px-6 py-4">
         <div className="flex items-center space-x-6">
           <div className="flex items-center space-x-2">
-            <div className="text-green-400 text-2xl font-bold">S</div>
-            <span className="text-white text-xl font-semibold">sukuk</span>
+            <div className="text-primary text-2xl font-bold">S</div>
+            <span className="text-foreground text-xl font-semibold">sukuk</span>
           </div>
 
           <div className="flex items-center space-x-2">
@@ -45,7 +45,7 @@ export function Header({ centerNavItem, navItems }: HeaderProps) {
                 variant={isLite ? "default" : "outline"}
                 size="sm"
                 className={
-                  isLite ? "bg-green-600 hover:bg-green-700" : "border-gray-600 text-gray-300 hover:bg-gray-800"
+                  isLite ? "bg-primary hover:bg-primary/90" : "border-secondary text-foreground hover:bg-secondary"
                 }
               >
                 Lite
@@ -56,7 +56,7 @@ export function Header({ centerNavItem, navItems }: HeaderProps) {
                 variant={isPro ? "default" : "outline"}
                 size="sm"
                 className={
-                  isPro ? "bg-green-600 hover:bg-green-700" : "border-gray-600 text-gray-300 hover:bg-gray-800"
+                  isPro ? "bg-primary hover:bg-primary/90" : "border-secondary text-foreground hover:bg-secondary"
                 }
               >
                 Pro
@@ -67,7 +67,7 @@ export function Header({ centerNavItem, navItems }: HeaderProps) {
 
         {centerNavItem && (
           <nav className="absolute left-1/2 transform -translate-x-1/2">
-            <span className="text-white border-b-2 border-green-400 pb-1 text-sm font-medium">{centerNavItem}</span>
+            <span className="text-foreground border-b-2 border-primary pb-1 text-sm font-medium">{centerNavItem}</span>
           </nav>
         )}
 
@@ -80,7 +80,7 @@ export function Header({ centerNavItem, navItems }: HeaderProps) {
                   key={item}
                   href={`/pro/${item.toLowerCase()}`}
                   className={`text-sm transition-colors ${
-                    isActive ? "text-white border-b-2 border-green-400 pb-1" : "text-gray-400 hover:text-white"
+                    isActive ? "text-foreground border-b-2 border-primary pb-1" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   {item}
@@ -94,8 +94,8 @@ export function Header({ centerNavItem, navItems }: HeaderProps) {
           onClick={handleConnectWallet}
           className={`${
             isConnected
-              ? "bg-green-600 hover:bg-green-700 text-white"
-              : "bg-gray-800 hover:bg-gray-700 text-white border border-gray-600"
+              ? "bg-primary hover:bg-primary/90 text-primary-foreground"
+              : "bg-secondary hover:bg-secondary/80 text-secondary-foreground border border-secondary"
           }`}
         >
           {isConnected ? "Wallet Connected" : "Connect wallet"}
