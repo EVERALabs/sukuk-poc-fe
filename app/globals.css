@@ -1,119 +1,26 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-@layer base {
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
   :root {
-    /* Syariah Finance Green Palette - Light Theme */
-    --background: #E8F5E9;
-    --foreground: #263238;
-    --card: #FFFFFF;
-    --card-foreground: #263238;
-    --popover: #FFFFFF;
-    --popover-foreground: #263238;
-    --primary: #2E7D32;
-    --primary-foreground: #FFFFFF;
-    --secondary: #A5D6A7;
-    --secondary-foreground: #263238;
-    --muted: #E8F5E9;
-    --muted-foreground: #B0BEC5;
-    --accent: #A5D6A7;
-    --accent-foreground: #263238;
-    --destructive: #EF4444;
-    --destructive-foreground: #FFFFFF;
-    --border: #A5D6A7;
-    --input: #A5D6A7;
-    --ring: #2E7D32;
-    --chart-1: #2E7D32;
-    --chart-2: #A5D6A7;
-    --chart-3: #1B5E20;
-    --chart-4: #FFD700;
-    --chart-5: #E8F5E9;
-    --radius: 0.5rem;
-    --sidebar-background: #E8F5E9;
-    --sidebar-foreground: #263238;
-    --sidebar-primary: #2E7D32;
-    --sidebar-primary-foreground: #FFFFFF;
-    --sidebar-accent: #A5D6A7;
-    --sidebar-accent-foreground: #263238;
-    --sidebar-border: #A5D6A7;
-    --sidebar-ring: #2E7D32;
-  }
-  
-  .dark {
-    /* Syariah Finance Green Palette - Dark Theme */
-    --background: #263238;
-    --foreground: #FFFFFF;
-    --card: #37474F;
-    --card-foreground: #FFFFFF;
-    --popover: #37474F;
-    --popover-foreground: #FFFFFF;
-    --primary: #2E7D32;
-    --primary-foreground: #FFFFFF;
-    --secondary: #A5D6A7;
-    --secondary-foreground: #263238;
-    --muted: #37474F;
-    --muted-foreground: #B0BEC5;
-    --accent: #A5D6A7;
-    --accent-foreground: #263238;
-    --destructive: #7F1D1D;
-    --destructive-foreground: #FFFFFF;
-    --border: #A5D6A7;
-    --input: #A5D6A7;
-    --ring: #2E7D32;
-    --chart-1: #2E7D32;
-    --chart-2: #A5D6A7;
-    --chart-3: #1B5E20;
-    --chart-4: #FFD700;
-    --chart-5: #E8F5E9;
-    --sidebar-background: #37474F;
-    --sidebar-foreground: #FFFFFF;
-    --sidebar-primary: #2E7D32;
-    --sidebar-primary-foreground: #FFFFFF;
-    --sidebar-accent: #A5D6A7;
-    --sidebar-accent-foreground: #263238;
-    --sidebar-border: #A5D6A7;
-    --sidebar-ring: #2E7D32;
+    --background: #0a0a0a;
+    --foreground: #ededed;
   }
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-}
-
-/* Custom scrollbar for Syariah Finance Green theme */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #E8F5E9; /* Mint Green background */
-}
-
-::-webkit-scrollbar-thumb {
-  background: #A5D6A7; /* Olive Green thumb */
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #2E7D32; /* Emerald Green on hover */
-}
-
-/* Dark theme scrollbar */
-.dark ::-webkit-scrollbar-track {
-  background: #263238; /* Charcoal background */
-}
-
-.dark ::-webkit-scrollbar-thumb {
-  background: #A5D6A7; /* Olive Green thumb */
-}
-
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: #2E7D32; /* Emerald Green on hover */
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
 }
