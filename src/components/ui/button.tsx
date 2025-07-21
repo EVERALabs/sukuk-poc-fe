@@ -30,7 +30,7 @@ export const PrimaryButton = React.forwardRef<
                 className
             )} ${disabled
                 ? "bg-gradient-to-r from-muted-gradient-start to-muted-gradient-end cursor-not-allowed"
-                : "bg-gradient-to-r from-gradient-blue-end via-gradient-blue-start to-gradient-blue-end bg-size-[200%_200%] bg-position-[100%_100%] hover:bg-position-[0%_0%] duration-500 transition-all"
+                : "bg-gradient-to-r from-gradient-green-end via-gradient-green-start to-gradient-green-end bg-size-[200%_200%] bg-position-[100%_100%] hover:bg-position-[0%_0%] duration-500 transition-all"
                 }`}
             ref={ref}
             disabled={disabled}
@@ -60,7 +60,7 @@ export const SecondaryButton = React.forwardRef<
     return (
         <button
             className={cn(
-                "bg-blue-100 text-blue-600 hover:bg-blue-200 transition-all px-3 py-1 rounded-full w-fit h-fit outline-0 cursor-pointer",
+                "bg-green-100 text-green-600 hover:bg-green-200 transition-all px-3 py-1 rounded-full w-fit h-fit outline-0 cursor-pointer",
                 className
             )}
             ref={ref}
@@ -93,7 +93,7 @@ export const OutlineButton = React.forwardRef<
     return (
         <button
             className={cn(
-                "border border-blue-800 outline-0 ring-0 hover:bg-blue-800 hover:text-background flex items-center justify-center gap-2 transition-all rounded-lg cursor-pointer",
+                "border border-green-800 outline-0 ring-0 hover:bg-green-800 hover:text-background flex items-center justify-center gap-2 transition-all rounded-lg cursor-pointer",
                 className
             )}
             ref={ref}

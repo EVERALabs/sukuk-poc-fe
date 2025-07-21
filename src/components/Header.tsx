@@ -2,8 +2,8 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { useState } from "react"
-import { motion } from "framer-motion"
+import { useRef, useState } from "react"
+import { motion, useMotionValueEvent, useScroll } from "framer-motion"
 import Image from "next/image";
 import { cn } from "@/utils/style"
 import { PrimaryButton } from "./ui/button"
@@ -29,6 +29,18 @@ export function Header({ centerNavItem, navItems }: HeaderProps) {
     const pathname = usePathname()
     const [isConnected, setIsConnected] = useState(false)
 
+    const [isScroll, setIsScrolled] = useState(false);
+    const { scrollY } = useScroll();
+    const wasScrolled = useRef(false);
+    useMotionValueEvent(scrollY, "change", (latest) => {
+        const isNowScrolled = latest > 250;
+
+        if (isNowScrolled !== wasScrolled.current) {
+            setIsScrolled(isNowScrolled);
+            wasScrolled.current = isNowScrolled;
+        }
+    });
+
     const handleConnectWallet = () => {
         setIsConnected(true)
         setTimeout(() => {
@@ -44,9 +56,25 @@ export function Header({ centerNavItem, navItems }: HeaderProps) {
     }
 
     return (
-        <header className="border-b border-gray-800 bg-gray-900">
-            <div className="flex items-center justify-between px-6 py-4">
-                <div className="flex items-center space-x-12">
+        <motion.header
+            initial={{
+                opacity: 0,
+                y: "-100%",
+            }}
+            animate={{
+                opacity: 1,
+                y: 0,
+                transition: {
+                    duration: 0.6,
+                },
+            }}
+            className={`fixed z-50 flex items-center justify-between gap-4 w-full h-[72px] px-4 py-4  lg:px-24 transition-all duration-500 ${isScroll
+                ? "backdrop-blur-sm bg-white/0"
+                : "backdrop-blur-0 bg-green-950/0"
+                }`}
+        >
+            <div className="flex items-center w-full justify-between px-6 py-4">
+                <div className="flex items-center space-x-6">
                     <div className="flex items-center space-x-2">
                         <div className="flex flex-row items-center gap-2 text-green-400 text-xl font-bold">
                             <Image
@@ -63,7 +91,7 @@ export function Header({ centerNavItem, navItems }: HeaderProps) {
                     <div className="flex items-center space-x-2">
                         <div className={cn(
                             "hidden p-1 rounded-full lg:flex flex-1 max-w-[397px] font-onestMedium gap-4",
-                            "bg-blue-950")}
+                            "bg-green-950")}
                         >
                             {LINKS.map((link) => (
                                 <button
@@ -77,16 +105,16 @@ export function Header({ centerNavItem, navItems }: HeaderProps) {
                                     {link.path === pathname && (
                                         <motion.div
                                             layoutId="switch-header"
-                                            className="size-full absolute inset-0 rounded-full bg-blue-800"
+                                            className="size-full absolute inset-0 rounded-full bg-green-800"
                                         ></motion.div>
                                     )}
                                     <div
                                         className={cn("size-full absolute inset-0 rounded-full",
-                                            link.path === pathname ? "group-hover:bg-blue-800" : "group-hover:bg-[#C6EDFF]"
+                                            link.path === pathname ? "group-hover:bg-green-800" : "group-hover:bg-green-50"
                                         )}
                                     ></div>
                                     <p className={cn("relative text-sm",
-                                        link.path === pathname ? "group-hover:text-white" : "group-hover:text-[#2E7C90]"
+                                        link.path === pathname ? "group-hover:text-white" : "group-hover:text-text-700"
                                     )}>{link.name}</p>
                                 </button>
                             ))}
@@ -120,14 +148,11 @@ export function Header({ centerNavItem, navItems }: HeaderProps) {
 
                 <PrimaryButton
                     onClick={handleConnectWallet}
-                    className={`${isConnected
-                        ? "bg-green-600 hover:bg-green-700 text-white"
-                        : "bg-gray-800 hover:bg-gray-700 text-white border border-gray-600"
-                        }`}
+                    className="text-xs h-full py-2 hover:bg-green-700 text-white"
                 >
                     {isConnected ? "Wallet Connected" : "Connect wallet"}
                 </PrimaryButton>
             </div>
-        </header>
+        </motion.header>
     )
 }
