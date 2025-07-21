@@ -26,7 +26,7 @@ export const PrimaryButton = React.forwardRef<
     return (
         <button
             className={`${cn(
-                "px-4 py-2 rounded-full cursor-pointer font-onestSemibold uppercase w-fit h-fit outline-0 relative",
+                "px-4 rounded-full cursor-pointer font-onestSemibold uppercase w-fit h-fit outline-0 relative",
                 className
             )} ${disabled
                 ? "bg-gradient-to-r from-muted-gradient-start to-muted-gradient-end cursor-not-allowed"

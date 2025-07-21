@@ -16,7 +16,7 @@ interface HeaderProps {
 const LINKS = [
     {
         name: "Lite",
-        path: "/lite",
+        path: "/buy",
     },
     {
         name: "Pro",
@@ -84,7 +84,7 @@ export function Header({ centerNavItem, navItems }: HeaderProps) {
                                 height={36}
                                 className="rounded-full size-[36px] object-cover"
                             />
-                            <span>INDO SUKUK</span>
+                            <span>INDOSUKUK</span>
                         </div>
                     </div>
 

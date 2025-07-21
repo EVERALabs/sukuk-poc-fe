@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Indo Sukuk",
+  title: "Indosukuk",
   description: "Platform transaksi keuangan syariah berbasis sukuk yang amanah, transparan, dan terpercaya.",
 };
 
