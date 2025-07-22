@@ -152,7 +152,7 @@ export function SukukPoolsTable() {
                             {poolData.map((pool, index) => (
                                 <tr key={index} className="border-b border-border hover:bg-accent/50">
                                     <td className="py-4 px-6">
-                                        <Link href={`/sukuk/pool/${pool.id}`} className="hover:text-primary transition-colors">
+                                        <Link href={`/sukuk/${pool.id}`} className="hover:text-primary transition-colors">
                                             <div className="flex items-center space-x-3">
                                                 <div className={`w-10 h-10 ${pool.iconBg} rounded-lg flex items-center justify-center text-lg`}>
                                                     {pool.icon}
