@@ -12,8 +12,8 @@ const getPoolData = (id: string) => {
             name: "Sukuk Ritel",
             description: "Sukuk Ritel Seri SR022-T5",
             couponType: "Fixed Rate",
-            status: "Syariah",
-            statusType: "syariah",
+            status: "Berlangsung",
+            statusType: "ongoing",
             period: "16 Mei - 18 Jun 2025",
             returnRate: "6.55%",
             tenor: "5 Tahun",
@@ -34,7 +34,7 @@ const getPoolData = (id: string) => {
             name: "Trade Finance Pool #fincards-receivables-pool-amoy",
             description: "Sharia-Compliant Trade Finance",
             couponType: "Fixed Rate",
-            status: "Aktif",
+            status: "Berlangsung",
             statusType: "ongoing",
             period: "15 Mar - 15 Sep 2025",
             returnRate: "12.5%",
@@ -68,12 +68,12 @@ export function PoolDetailHeader({ poolId }: PoolDetailHeaderProps) {
                             <h1 className="text-3xl font-bold text-foreground">{pool.code}</h1>
                             <span
                                 className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                    pool.statusType === "syariah"
-                                        ? "bg-pink-100 text-pink-600 border border-pink-200"
-                                        : pool.statusType === "ongoing"
+                                    pool.statusType === "ongoing"
                                         ? "bg-primary/20 text-primary border border-primary/30"
                                         : pool.statusType === "upcoming"
                                         ? "bg-blue-50 text-blue-600 border border-blue-200"
+                                        : pool.statusType === "ended"
+                                        ? "bg-gray-100 text-gray-800 border border-gray-200"
                                         : "bg-gray-100 text-gray-800 border border-gray-200"
                                 }`}
                             >
@@ -84,7 +84,7 @@ export function PoolDetailHeader({ poolId }: PoolDetailHeaderProps) {
                     </div>
                 </div>
                 
-                <div className="flex space-x-2">
+                <div className="flex space-x-3">
                     <button className="px-4 py-2 border border-border rounded-lg text-foreground hover:bg-accent transition-colors">
                         Bagikan
                     </button>
@@ -123,7 +123,6 @@ export function PoolDetailHeader({ poolId }: PoolDetailHeaderProps) {
                     <div className="text-blue-800 font-bold text-2xl">{pool.status}</div>
                 </div>
             </div>
-
 
         </div>
     )
