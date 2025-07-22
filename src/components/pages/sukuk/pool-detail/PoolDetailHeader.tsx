@@ -124,21 +124,7 @@ export function PoolDetailHeader({ poolId }: PoolDetailHeaderProps) {
                 </div>
             </div>
 
-            {/* Alternative format for trade-finance-pool */}
-            {poolId === "trade-finance-pool" && (
-                <div className="mt-4">
-                    <div className="grid grid-cols-2 gap-6">
-                        <div className="text-center p-4 bg-muted/50 rounded-lg">
-                            <p className="text-muted-foreground text-sm mb-1">Imbal Hasil /Tahun</p>
-                            <p className="text-foreground font-bold text-3xl">{pool.returnRate}</p>
-                        </div>
-                        <div className="text-center p-4 bg-muted/50 rounded-lg">
-                            <p className="text-muted-foreground text-sm mb-1">Tenor</p>
-                            <p className="text-foreground font-bold text-3xl">{pool.tenor}</p>
-                        </div>
-                    </div>
-                </div>
-            )}
+
         </div>
     )
 }
