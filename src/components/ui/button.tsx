@@ -29,8 +29,8 @@ export const PrimaryButton = React.forwardRef<
                 "px-4 rounded-full cursor-pointer font-onestSemibold uppercase w-fit h-fit outline-0 relative",
                 className
             )} ${disabled
-                ? "bg-muted-gradient-end cursor-not-allowed"
-                : "bg-muted-gradient-end bg-size-[200%_200%] bg-position-[100%_100%] hover:bg-position-[0%_0%] duration-500 transition-all"
+                ? "bg-primary cursor-not-allowed"
+                : "bg-primary"
                 }`}
             ref={ref}
             disabled={disabled}
