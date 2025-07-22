@@ -150,7 +150,7 @@ export function Header({ centerNavItem, navItems }: HeaderProps) {
                     onClick={handleConnectWallet}
                     className="text-xs h-full py-2 hover:bg-green-700 text-white"
                 >
-                    {isConnected ? "Wallet Connected" : "Connect wallet"}
+                    {isConnected ? "Wallet Connected" : "Hubungkan Dompet"}
                 </PrimaryButton>
             </div>
         </motion.header>

@@ -9,8 +9,8 @@ const poolData = [
         code: "SR022-T5",
         name: "Sukuk Ritel",
         couponType: "Fixed Rate",
-        status: "Syariah",
-        statusType: "syariah",
+        status: "Berlangsung",
+        statusType: "ongoing",
         period: "16 Mei - 18 Jun 2025",
         returnRate: "6.55%",
         progress: 85.2,
@@ -177,9 +177,7 @@ export function SukukPoolsTable() {
                                     <td className="py-4 px-6">
                                         <span
                                             className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                                pool.statusType === "syariah"
-                                                    ? "bg-pink-100 text-pink-600 border border-pink-200"
-                                                    : pool.statusType === "ongoing"
+                                                pool.statusType === "ongoing"
                                                     ? "bg-primary/20 text-primary border border-primary/30"
                                                     : pool.statusType === "upcoming"
                                                     ? "bg-blue-50 text-blue-600 border border-blue-200"
