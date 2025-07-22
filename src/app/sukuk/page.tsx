@@ -10,7 +10,7 @@ export default function ProPoolPage() {
             {/* Additional Info */}
             <div className="mt-6 text-center">
                 <p className="text-muted-foreground text-sm">
-                    Sukuk pools adalah kendaraan investasi yang kompatibel dengan syariah. Selalu periksa detail pool sebelum berinvestasi.
+                    Sukuk adalah kendaraan investasi yang kompatibel dengan syariah. Selalu periksa detail pool sebelum berinvestasi.
                 </p>
             </div>
         </div>
