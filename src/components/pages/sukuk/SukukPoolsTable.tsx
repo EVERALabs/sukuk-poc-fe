@@ -5,6 +5,20 @@ import Link from "next/link"
 
 const poolData = [
     {
+        id: "sr022-t5",
+        code: "SR022-T5",
+        name: "Sukuk Ritel",
+        couponType: "Fixed Rate",
+        status: "Syariah",
+        statusType: "syariah",
+        period: "16 Mei - 18 Jun 2025",
+        returnRate: "6.55%",
+        progress: 85.2,
+        progressAmount: "Rp5,964,000,000,000",
+        icon: "⭐",
+        iconBg: "bg-purple-100"
+    },
+    {
         id: "sr023",
         code: "SR023",
         name: "Sukuk Ritel",
@@ -138,7 +152,7 @@ export function SukukPoolsTable() {
                             {poolData.map((pool, index) => (
                                 <tr key={index} className="border-b border-border hover:bg-accent/50">
                                     <td className="py-4 px-6">
-                                        <Link href={`/pro/pool/${pool.id}`} className="hover:text-primary transition-colors">
+                                        <Link href={`/sukuk/pool/${pool.id}`} className="hover:text-primary transition-colors">
                                             <div className="flex items-center space-x-3">
                                                 <div className={`w-10 h-10 ${pool.iconBg} rounded-lg flex items-center justify-center text-lg`}>
                                                     {pool.icon}
@@ -163,7 +177,9 @@ export function SukukPoolsTable() {
                                     <td className="py-4 px-6">
                                         <span
                                             className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                                pool.statusType === "ongoing"
+                                                pool.statusType === "syariah"
+                                                    ? "bg-pink-100 text-pink-600 border border-pink-200"
+                                                    : pool.statusType === "ongoing"
                                                     ? "bg-primary/20 text-primary border border-primary/30"
                                                     : pool.statusType === "upcoming"
                                                     ? "bg-blue-50 text-blue-600 border border-blue-200"
