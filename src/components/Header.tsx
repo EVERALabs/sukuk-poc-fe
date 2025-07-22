@@ -20,7 +20,7 @@ const LINKS = [
     },
     {
         name: "Pro",
-        path: "/pro",
+        path: "/sukuk",
     },
 ];
 
@@ -135,7 +135,7 @@ export function Header({ centerNavItem, navItems }: HeaderProps) {
                             return (
                                 <Link
                                     key={item}
-                                    href={`/pro/${item.toLowerCase()}`}
+                                    href={`/sukuk/${item.toLowerCase()}`}
                                     className={`text-sm transition-colors ${isActive ? "text-white border-b-2 border-green-400 pb-1" : "text-gray-400 hover:text-white"
                                         }`}
                                 >
