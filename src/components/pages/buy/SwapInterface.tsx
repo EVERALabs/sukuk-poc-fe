@@ -7,7 +7,7 @@ import { toCurrency } from "@/utils/string"
 
 export function SwapInterface() {
     const [activeTab, setActiveTab] = useState<"invest" | "redeem">("invest")
-    const [investAmount, setInvestAmount] = useState("")
+    const [investAmount] = useState("")
     const [redeemAmount, setRedeemAmount] = useState("")
     const [usdcBalance] = useState(1000)
     const [isConnected, setIsConnected] = useState(false)

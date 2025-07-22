@@ -1,6 +1,6 @@
 "use client"
 
-export function PoolRiskMetrics() {
+export function SukukRiskMetrics() {
     return (
         <div className="bg-card rounded-xl p-6 border border-border">
             <h3 className="text-lg font-semibold text-foreground mb-6">Tentang SBN</h3>

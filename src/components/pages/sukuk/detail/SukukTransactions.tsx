@@ -43,7 +43,7 @@ const mockTransactions = [
     }
 ]
 
-export function PoolTransactions() {
+export function SukukTransactions() {
     return (
         <div className="bg-card rounded-xl p-6 border border-border">
             <div className="flex items-center justify-between mb-6">

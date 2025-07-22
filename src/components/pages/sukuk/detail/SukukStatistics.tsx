@@ -1,6 +1,6 @@
 "use client"
 
-export function PoolStatistics() {
+export function SukukStatistics() {
     return (
         <div className="bg-card rounded-xl p-6 border border-border">
             <h3 className="text-xl font-bold text-foreground mb-8">Ketentuan SR022-T5</h3>

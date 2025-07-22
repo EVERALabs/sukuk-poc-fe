@@ -1,12 +1,36 @@
 "use client"
 
-interface PoolDetailHeaderProps {
-    poolId: string
+interface SukukDetailHeaderProps {
+    sukukId: string
+}
+
+interface SukukDetailProps {
+    code: string,
+    name: string,
+    description: string,
+    couponType: string,
+    status: string,
+    statusType: string,
+    period: string,
+    returnRate: string,
+    tenor: string,
+    progress?: number,
+    icon: string,
+    iconBg: string,
+    totalValue: string,
+    minInvestment: string,
+    maxInvestment?: string,
+    investmentPeriod: string,
+    distribution: string,
+    shareCompliance: string,
+    maturityDate?: string,
+    couponPayment?: string,
+    firstCoupon?: string,
 }
 
 // Mock data - in real app this would come from API
-const getPoolData = (id: string) => {
-    const poolsData: Record<string, any> = {
+const getSukukData = (id: string) => {
+    const poolsData: Record<string, SukukDetailProps> = {
         "sr022-t5": {
             code: "SR022-T5",
             name: "Sukuk Ritel",
@@ -29,9 +53,9 @@ const getPoolData = (id: string) => {
             couponPayment: "10 Setiap Bulan",
             firstCoupon: "11 Agustus 2025"
         },
-        "trade-finance-pool": {
+        "trade-finance-sukuk": {
             code: "TFP001",
-            name: "Trade Finance Pool #fincards-receivables-pool-amoy",
+            name: "Trade Finance Sukuk #fincards-receivables-sukuk-amoy",
             description: "Sharia-Compliant Trade Finance",
             couponType: "Fixed Rate",
             status: "Berlangsung",
@@ -49,41 +73,40 @@ const getPoolData = (id: string) => {
             shareCompliance: "100%"
         }
     }
-    
+
     return poolsData[id] || poolsData["sr022-t5"]
 }
 
-export function PoolDetailHeader({ poolId }: PoolDetailHeaderProps) {
-    const pool = getPoolData(poolId)
-    
+export function SukukDetailHeader({ sukukId }: SukukDetailHeaderProps) {
+    const sukuk = getSukukData(sukukId)
+
     return (
         <div className="bg-card rounded-xl p-6 border border-border">
             <div className="flex items-start justify-between mb-8">
                 <div className="flex items-center space-x-4">
-                    <div className={`w-16 h-16 ${pool.iconBg} rounded-lg flex items-center justify-center text-2xl`}>
-                        {pool.icon}
+                    <div className={`w-16 h-16 ${sukuk.iconBg} rounded-lg flex items-center justify-center text-2xl`}>
+                        {sukuk.icon}
                     </div>
                     <div>
                         <div className="flex items-center space-x-3 mb-2">
-                            <h1 className="text-3xl font-bold text-foreground">{pool.code}</h1>
+                            <h1 className="text-3xl font-bold text-foreground">{sukuk.code}</h1>
                             <span
-                                className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                    pool.statusType === "ongoing"
-                                        ? "bg-primary/20 text-primary border border-primary/30"
-                                        : pool.statusType === "upcoming"
+                                className={`px-3 py-1 rounded-full text-xs font-medium ${sukuk.statusType === "ongoing"
+                                    ? "bg-primary/20 text-primary border border-primary/30"
+                                    : sukuk.statusType === "upcoming"
                                         ? "bg-blue-50 text-blue-600 border border-blue-200"
-                                        : pool.statusType === "ended"
-                                        ? "bg-gray-100 text-gray-800 border border-gray-200"
-                                        : "bg-gray-100 text-gray-800 border border-gray-200"
-                                }`}
+                                        : sukuk.statusType === "ended"
+                                            ? "bg-gray-100 text-gray-800 border border-gray-200"
+                                            : "bg-gray-100 text-gray-800 border border-gray-200"
+                                    }`}
                             >
-                                {pool.status}
+                                {sukuk.status}
                             </span>
                         </div>
-                        <h2 className="text-lg text-muted-foreground">{pool.name}</h2>
+                        <h2 className="text-lg text-muted-foreground">{sukuk.name}</h2>
                     </div>
                 </div>
-                
+
                 <div className="flex space-x-3">
                     <button className="px-4 py-2 border border-border rounded-lg text-foreground hover:bg-accent transition-colors">
                         Bagikan
@@ -102,7 +125,7 @@ export function PoolDetailHeader({ poolId }: PoolDetailHeaderProps) {
                         <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                         <span className="text-green-700 font-medium text-sm">Tenor</span>
                     </div>
-                    <div className="text-green-800 font-bold text-2xl">{pool.tenor}</div>
+                    <div className="text-green-800 font-bold text-2xl">{sukuk.tenor}</div>
                 </div>
 
                 {/* Imbal Hasil */}
@@ -111,7 +134,7 @@ export function PoolDetailHeader({ poolId }: PoolDetailHeaderProps) {
                         <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                         <span className="text-green-700 font-medium text-sm">Imbal Hasil</span>
                     </div>
-                    <div className="text-green-800 font-bold text-2xl">{pool.returnRate} / Tahun</div>
+                    <div className="text-green-800 font-bold text-2xl">{sukuk.returnRate} / Tahun</div>
                 </div>
 
                 {/* Status */}
@@ -120,11 +143,10 @@ export function PoolDetailHeader({ poolId }: PoolDetailHeaderProps) {
                         <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                         <span className="text-blue-700 font-medium text-sm">Status</span>
                     </div>
-                    <div className="text-blue-800 font-bold text-2xl">{pool.status}</div>
+                    <div className="text-blue-800 font-bold text-2xl">{sukuk.status}</div>
                 </div>
             </div>
 
         </div>
     )
 }
- 

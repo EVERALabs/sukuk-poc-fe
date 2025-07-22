@@ -5,7 +5,7 @@ import { PrimaryButton } from "@/components/ui/button"
 import { PrimaryInput } from "@/components/ui/input"
 import { toCurrency } from "@/utils/string"
 
-export function PoolInvestmentPanel() {
+export function SukukInvestmentPanel() {
     const [activeTab, setActiveTab] = useState<"beli" | "jual">("beli")
     const [investAmount, setInvestAmount] = useState("")
     const [isConnected, setIsConnected] = useState(false)
@@ -38,21 +38,19 @@ export function PoolInvestmentPanel() {
                 <div className="flex mb-6 bg-muted rounded-lg p-1">
                     <button
                         onClick={() => setActiveTab("beli")}
-                        className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all cursor-pointer ${
-                            activeTab === "beli"
+                        className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all cursor-pointer ${activeTab === "beli"
                                 ? "bg-primary text-primary-foreground shadow-sm"
                                 : "text-muted-foreground hover:text-foreground hover:bg-accent"
-                        }`}
+                            }`}
                     >
                         Beli
                     </button>
                     <button
                         onClick={() => setActiveTab("jual")}
-                        className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all cursor-pointer ${
-                            activeTab === "jual"
+                        className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all cursor-pointer ${activeTab === "jual"
                                 ? "bg-primary text-primary-foreground shadow-sm"
                                 : "text-muted-foreground hover:text-foreground hover:bg-accent"
-                        }`}
+                            }`}
                     >
                         Jual
                     </button>
@@ -147,18 +145,18 @@ export function PoolInvestmentPanel() {
             {/* Investment Simulation */}
             <div className="bg-card rounded-xl p-6 border border-border">
                 <h3 className="text-lg font-semibold text-foreground mb-4">Simulasi Investasi</h3>
-                
+
                 <div className="space-y-4 mb-6">
                     <div className="flex justify-between">
                         <span className="text-muted-foreground">Modal Investasi</span>
                         <span className="text-foreground font-medium">Rp{toCurrency(principal)}</span>
                     </div>
-                    
+
                     <div className="flex justify-between">
                         <span className="text-muted-foreground">Tingkat Imbal Hasil Kupon</span>
                         <span className="text-foreground font-medium">6.55%</span>
                     </div>
-                    
+
                     <div className="flex justify-between">
                         <span className="text-muted-foreground">Kupon / Bulan</span>
                         <span className="text-foreground font-medium">Rp{toCurrency(monthlyCoupon)}</span>
@@ -169,18 +167,18 @@ export function PoolInvestmentPanel() {
                     <h4 className="text-md font-semibold text-foreground mb-3">
                         Proyeksi Nilai Investasi Kamu di <span className="text-primary">10 Jun 2030</span>
                     </h4>
-                    
+
                     <div className="space-y-3">
                         <div className="flex justify-between">
                             <span className="text-muted-foreground">Modal Investasi</span>
                             <span className="text-foreground font-medium">Rp{toCurrency(principal)}</span>
                         </div>
-                        
+
                         <div className="flex justify-between">
                             <span className="text-muted-foreground">Total Kupon</span>
                             <span className="text-primary font-medium">+Rp{toCurrency(totalCoupons)}</span>
                         </div>
-                        
+
                         <div className="bg-primary/10 p-4 rounded-lg">
                             <div className="text-primary font-bold text-xl">
                                 Rp {toCurrency(totalValue)}
