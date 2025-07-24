@@ -74,6 +74,11 @@ export function useTransactionHistory(address: string, limit?: number) {
   return useApi(() => apiClient.getTransactionHistory(address, limit), [address, limit]);
 }
 
+// Owned Sukuk hooks
+export function useOwnedSukuk(address: string) {
+  return useApi(() => apiClient.getOwnedSukuk(address), [address]);
+}
+
 // User Profile hooks
 export function useUserProfile() {
   return useApi(() => apiClient.getUserProfile(), []);

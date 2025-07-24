@@ -259,3 +259,80 @@ export function getPaginationInfo(
     hasPrevPage: currentPage > 1,
   };
 } 
+
+// Portfolio calculation helpers
+export function calculateSukukBalance(sukuk: any): number {
+  if (!sukuk.latest_activities || sukuk.latest_activities.length === 0) {
+    return 0;
+  }
+
+  // Sum all purchase amounts (amounts are in wei as strings)
+  let totalBalance = BigInt(0);
+  
+  for (const activity of sukuk.latest_activities) {
+    if (activity.type === 'purchase') {
+      totalBalance += BigInt(activity.amount);
+    }
+    // We could also handle 'sale' activities by subtracting if they exist
+  }
+
+  // Convert from wei to ether (divide by 10^18)
+  return Number(totalBalance / BigInt(10**18));
+}
+
+export function calculatePortfolioSummary(ownedSukukList: any[]): {
+  totalValue: number;
+  totalInvestments: number;
+  averageReturn: number;
+} {
+  if (!ownedSukukList || ownedSukukList.length === 0) {
+    return {
+      totalValue: 0,
+      totalInvestments: 0,
+      averageReturn: 0
+    };
+  }
+
+  let totalInvested = 0;
+  let totalCurrentValue = 0;
+  let totalReturnRate = 0;
+
+  for (const sukuk of ownedSukukList) {
+    const balance = calculateSukukBalance(sukuk);
+    totalInvested += balance;
+    
+    // For current value, we assume 1:1 unless we have market data
+    // In a real scenario, this would factor in current market price
+    totalCurrentValue += balance;
+    
+    // Parse return rate from imbal_hasil field (e.g., "8.5" -> 8.5)
+    const returnRate = sukuk.imbal_hasil ? parseFloat(sukuk.imbal_hasil) : 0;
+    totalReturnRate += returnRate;
+  }
+
+  const averageReturn = ownedSukukList.length > 0 ? totalReturnRate / ownedSukukList.length : 0;
+
+  return {
+    totalValue: totalCurrentValue,
+    totalInvestments: totalInvested,
+    averageReturn: averageReturn
+  };
+}
+
+export function formatSukukHolding(sukuk: any) {
+  const balance = calculateSukukBalance(sukuk);
+  const returnRate = sukuk.imbal_hasil ? parseFloat(sukuk.imbal_hasil) : 0;
+  
+  return {
+    id: sukuk.id.toString(),
+    sukukCode: sukuk.sukuk_code,
+    sukukTitle: sukuk.sukuk_title,
+    investedAmount: balance,
+    currentValue: balance, // Assuming 1:1 for now
+    returnRate: returnRate,
+    status: sukuk.status,
+    maturityDate: sukuk.jatuh_tempo,
+    couponType: sukuk.tipe_kupon,
+    couponPayment: sukuk.penerimaan_kupon
+  };
+} 
