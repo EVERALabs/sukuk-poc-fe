@@ -24,6 +24,21 @@ const LINKS = [
     },
 ];
 
+const PRO_NAV_ITEMS = [
+    {
+        name: "Sukuk",
+        path: "/sukuk",
+    },
+    {
+        name: "Portofolio",
+        path: "/portfolio",
+    },
+    {
+        name: "Riwayat",
+        path: "/history",
+    },
+];
+
 export function Header({ centerNavItem, navItems }: HeaderProps) {
     const router = useRouter();
     const pathname = usePathname()
@@ -54,6 +69,9 @@ export function Header({ centerNavItem, navItems }: HeaderProps) {
         if (pathname.includes("/history")) return "History"
         return ""
     }
+
+    // Check if we're in PRO state (on sukuk, portfolio, or history pages)
+    const isProState = pathname.startsWith("/sukuk") || pathname.startsWith("/portfolio") || pathname.startsWith("/history")
 
     return (
         <motion.header
@@ -93,42 +111,70 @@ export function Header({ centerNavItem, navItems }: HeaderProps) {
                             "hidden p-1 rounded-full lg:flex flex-1 max-w-[397px] font-onestMedium gap-4",
                             "bg-green-950")}
                         >
-                            {LINKS.map((link) => (
-                                <button
-                                    key={link.name}
-                                    className={cn(
-                                        "group rounded-full flex-1 py-2 px-4 flex justify-center relative cursor-pointer",
-                                        link.path === pathname ? "text-white" : "text-text-300"
-                                    )}
-                                    onClick={() => router.push(link.path)}
-                                >
-                                    {link.path === pathname && (
-                                        <motion.div
-                                            layoutId="switch-header"
-                                            className="size-full absolute inset-0 rounded-full bg-green-800"
-                                        ></motion.div>
-                                    )}
-                                    <div
-                                        className={cn("size-full absolute inset-0 rounded-full",
-                                            link.path === pathname ? "group-hover:bg-green-800" : "group-hover:bg-green-50"
+                            {LINKS.map((link) => {
+                                // Check if this is the Pro link and if we're in PRO state
+                                const isProLink = link.name === "Pro"
+                                const isActive = isProLink ? isProState : link.path === pathname
+                                
+                                return (
+                                    <button
+                                        key={link.name}
+                                        className={cn(
+                                            "group rounded-full flex-1 py-2 px-4 flex justify-center relative cursor-pointer",
+                                            isActive ? "text-white" : "text-text-300"
                                         )}
-                                    ></div>
-                                    <p className={cn("relative text-sm",
-                                        link.path === pathname ? "group-hover:text-white" : "group-hover:text-text-700"
-                                    )}>{link.name}</p>
-                                </button>
-                            ))}
+                                        onClick={() => router.push(link.path)}
+                                    >
+                                        {isActive && (
+                                            <motion.div
+                                                layoutId="switch-header"
+                                                className="size-full absolute inset-0 rounded-full bg-green-800"
+                                            ></motion.div>
+                                        )}
+                                        <div
+                                            className={cn("size-full absolute inset-0 rounded-full",
+                                                isActive ? "group-hover:bg-green-800" : "group-hover:bg-green-50"
+                                            )}
+                                        ></div>
+                                        <p className={cn("relative text-sm",
+                                            isActive ? "group-hover:text-white" : "group-hover:text-text-700"
+                                        )}>{link.name}</p>
+                                    </button>
+                                )
+                            })}
                         </div>
                     </div>
                 </div>
 
-                {centerNavItem && (
+                {/* PRO State Navigation */}
+                {isProState && (
+                    <nav className="absolute left-1/2 transform -translate-x-1/2 flex items-center space-x-8">
+                        {PRO_NAV_ITEMS.map((item) => {
+                            const isActive = pathname.startsWith(item.path)
+                            return (
+                                <Link
+                                    key={item.name}
+                                    href={item.path}
+                                    className={`text-sm font-medium transition-colors ${
+                                        isActive 
+                                            ? "text-black border-b-2 border-green-400 pb-1" 
+                                            : "text-gray-400 hover:text-white"
+                                    }`}
+                                >
+                                    {item.name}
+                                </Link>
+                            )
+                        })}
+                    </nav>
+                )}
+
+                {centerNavItem && !isProState && (
                     <nav className="absolute left-1/2 transform -translate-x-1/2">
                         <span className="text-white border-b-2 border-green-400 pb-1 text-sm font-medium">{centerNavItem}</span>
                     </nav>
                 )}
 
-                {navItems && (
+                {navItems && !isProState && (
                     <nav className="flex items-center space-x-8">
                         {navItems.map((item) => {
                             const isActive = getActiveNavItem() === item
@@ -150,7 +196,7 @@ export function Header({ centerNavItem, navItems }: HeaderProps) {
                     onClick={handleConnectWallet}
                     className="text-xs h-full py-2 hover:bg-green-700 text-white"
                 >
-                    {isConnected ? "Wallet Connected" : "Connect wallet"}
+                    {isConnected ? "Dompet Terhubung" : "Hubungkan Dompet"}
                 </PrimaryButton>
             </div>
         </motion.header>

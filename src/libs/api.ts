@@ -1,0 +1,356 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
+
+// API Configuration
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "https://backend-sukuk.kadzu.dev/api/v1";
+const API_TIMEOUT = 30000; // 30 seconds
+
+// API Response Types
+export interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  message?: string;
+  error?: string;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+// Sukuk Types
+export interface SukukPool {
+  id: number;
+  contract_address: string;
+  token_id: number;
+  owner_address: string;
+  transaction_hash: string;
+  block_number: number;
+  sukuk_code: string;
+  sukuk_title: string;
+  sukuk_deskripsi: string;
+  status: string;
+  logo_url: string;
+  tenor: string;
+  imbal_hasil: string;
+  periode_pembelian: string;
+  jatuh_tempo: string;
+  kuota_nasional: number;
+  penerimaan_kupon: string;
+  minimum_pembelian: number;
+  tanggal_bayar_kupon: string;
+  maksimum_pembelian: number;
+  kupon_pertama: string;
+  tipe_kupon: string;
+  metadata_ready: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// Legacy interface for backward compatibility
+export interface LegacySukukPool {
+  id: string;
+  code: string;
+  name: string;
+  couponType: "Fixed Rate" | "Variable Rate";
+  status: "Berlangsung" | "Mendatang" | "Berakhir";
+  statusType: "ongoing" | "upcoming" | "ended";
+  period: string;
+  returnRate: string | null;
+  progress: number | null;
+  progressAmount: string | null;
+  icon: string;
+  iconBg: string;
+  description?: string;
+  minInvestment?: number;
+  maxInvestment?: number;
+  maturityDate?: string;
+  issueDate?: string;
+  totalAmount?: number;
+  remainingAmount?: number;
+}
+
+export interface Portfolio {
+  totalValue: number;
+  totalProfit: number;
+  averageReturn: number;
+  holdings: PortfolioHolding[];
+}
+
+export interface PortfolioHolding {
+  id: string;
+  poolId: string;
+  poolName: string;
+  poolCode: string;
+  investedAmount: number;
+  currentValue: number;
+  profit: number;
+  returnRate: number;
+  purchaseDate: string;
+  maturityDate: string;
+  status: "active" | "matured" | "cancelled";
+}
+
+export interface Transaction {
+  id: string;
+  txHash: string;
+  amount: number;
+  poolId: string;
+  poolName: string;
+  poolCode: string;
+  date: string;
+  type: "buy" | "sell" | "dividend" | "maturity";
+  status: "pending" | "completed" | "failed" | "cancelled";
+  gasFee?: number;
+  blockNumber?: number;
+}
+
+export interface UserProfile {
+  id: string;
+  walletAddress: string;
+  email?: string;
+  name?: string;
+  kycStatus: "pending" | "verified" | "rejected";
+  totalInvested: number;
+  totalProfit: number;
+  joinDate: string;
+  lastActive: string;
+}
+
+// API Client Class
+class ApiClient {
+  private client: AxiosInstance;
+
+  constructor() {
+    this.client = axios.create({
+      baseURL: API_BASE_URL,
+      timeout: API_TIMEOUT,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    // Request interceptor
+    this.client.interceptors.request.use(
+      (config) => {
+        // Add auth token if available
+        const token = this.getAuthToken();
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+      },
+      (error) => {
+        return Promise.reject(error);
+      }
+    );
+
+    // Response interceptor
+    this.client.interceptors.response.use(
+      (response: AxiosResponse) => {
+        return response;
+      },
+      (error) => {
+        // Handle common errors
+        if (error.response?.status === 401) {
+          this.handleUnauthorized();
+        }
+        return Promise.reject(error);
+      }
+    );
+  }
+
+  private getAuthToken(): string | null {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("auth_token");
+    }
+    return null;
+  }
+
+  private handleUnauthorized(): void {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("auth_token");
+      window.location.href = "/login";
+    }
+  }
+
+  // Generic request method
+  private async request<T>(
+    config: AxiosRequestConfig
+  ): Promise<ApiResponse<T>> {
+    try {
+      const response = await this.client.request(config);
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(
+          error.response?.data?.message || error.message || "Network error"
+        );
+      }
+      throw new Error("Network error");
+    }
+  }
+
+  // Sukuk Pools API
+  async getSukukPools(): Promise<ApiResponse<SukukPool[]>> {
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}/sukuk-metadata?ready=true`
+      );
+      return {
+        success: true,
+        data: response.data,
+      };
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(
+          error.response?.data?.message || error.message || "Network error"
+        );
+      }
+      throw new Error("Network error");
+    }
+  }
+
+  async getSukukPool(id: string): Promise<ApiResponse<SukukPool>> {
+    return this.request({
+      method: "GET",
+      url: `/sukuk/pools/${id}`,
+    });
+  }
+
+  // Portfolio API
+  async getPortfolio(): Promise<ApiResponse<Portfolio>> {
+    return this.request({
+      method: "GET",
+      url: "/portfolio",
+    });
+  }
+
+  async getPortfolioHoldings(): Promise<ApiResponse<PortfolioHolding[]>> {
+    return this.request({
+      method: "GET",
+      url: "/portfolio/holdings",
+    });
+  }
+
+  // Transactions API
+  async getTransactions(params?: {
+    page?: number;
+    limit?: number;
+    type?: string;
+    status?: string;
+    poolId?: string;
+    search?: string;
+  }): Promise<ApiResponse<PaginatedResponse<Transaction>>> {
+    return this.request({
+      method: "GET",
+      url: "/transactions",
+      params,
+    });
+  }
+
+  async getTransaction(id: string): Promise<ApiResponse<Transaction>> {
+    return this.request({
+      method: "GET",
+      url: `/transactions/${id}`,
+    });
+  }
+
+  // Investment API
+  async investInPool(
+    poolId: string,
+    amount: number
+  ): Promise<ApiResponse<{ txHash: string }>> {
+    return this.request({
+      method: "POST",
+      url: "/invest",
+      data: {
+        poolId,
+        amount,
+      },
+    });
+  }
+
+  async withdrawFromPool(
+    poolId: string,
+    amount: number
+  ): Promise<ApiResponse<{ txHash: string }>> {
+    return this.request({
+      method: "POST",
+      url: "/withdraw",
+      data: {
+        poolId,
+        amount,
+      },
+    });
+  }
+
+  // User API
+  async getUserProfile(): Promise<ApiResponse<UserProfile>> {
+    return this.request({
+      method: "GET",
+      url: "/user/profile",
+    });
+  }
+
+  async updateUserProfile(
+    data: Partial<UserProfile>
+  ): Promise<ApiResponse<UserProfile>> {
+    return this.request({
+      method: "PUT",
+      url: "/user/profile",
+      data,
+    });
+  }
+
+  // Auth API
+  async connectWallet(
+    walletAddress: string,
+    signature: string
+  ): Promise<ApiResponse<{ token: string }>> {
+    return this.request({
+      method: "POST",
+      url: "/auth/connect-wallet",
+      data: {
+        walletAddress,
+        signature,
+      },
+    });
+  }
+
+  async logout(): Promise<ApiResponse<void>> {
+    return this.request({
+      method: "POST",
+      url: "/auth/logout",
+    });
+  }
+
+  // Analytics API
+  // async getInvestmentHistory(params?: {
+  //   period?: 'daily' | 'weekly' | 'monthly';
+  //   startDate?: string;
+  //   endDate?: string;
+  // }): Promise<ApiResponse<InvestmentHistory[]>> {
+  //   return this.request({
+  //     method: 'GET',
+  //     url: '/analytics/investment-history',
+  //     params,
+  //   });
+  // }
+
+  async getSukukDistribution(): Promise<ApiResponse<any>> {
+    return this.request({
+      method: "GET",
+      url: "/analytics/sukuk-distribution",
+    });
+  }
+}
+
+// Export singleton instance
+export const apiClient = new ApiClient();
