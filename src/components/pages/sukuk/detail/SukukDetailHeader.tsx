@@ -1,109 +1,103 @@
 "use client"
 
+import { useSukukPools } from "@/hooks/useApi"
+
 interface SukukDetailHeaderProps {
     sukukId: string
 }
 
-interface SukukDetailProps {
-    code: string,
-    name: string,
-    description: string,
-    couponType: string,
-    status: string,
-    statusType: string,
-    period: string,
-    returnRate: string,
-    tenor: string,
-    progress?: number,
-    icon: string,
-    iconBg: string,
-    totalValue: string,
-    minInvestment: string,
-    maxInvestment?: string,
-    investmentPeriod: string,
-    distribution: string,
-    shareCompliance: string,
-    maturityDate?: string,
-    couponPayment?: string,
-    firstCoupon?: string,
+// Helper function to get status type and styling
+const getStatusInfo = (status: string) => {
+  switch (status.toLowerCase()) {
+    case 'berlangsung':
+      return {
+        type: 'ongoing',
+        className: 'bg-primary/20 text-primary border border-primary/30'
+      }
+    case 'mendatang':
+      return {
+        type: 'upcoming',
+        className: 'bg-blue-50 text-blue-600 border border-blue-200'
+      }
+    case 'berakhir':
+      return {
+        type: 'ended',
+        className: 'bg-gray-100 text-gray-800 border border-gray-200'
+      }
+    default:
+      return {
+        type: 'unknown',
+        className: 'bg-muted/20 text-muted-foreground border border-muted/30'
+      }
+  }
 }
 
-// Mock data - in real app this would come from API
-const getSukukData = (id: string) => {
-    const poolsData: Record<string, SukukDetailProps> = {
-        "sr022-t5": {
-            code: "SR022-T5",
-            name: "Sukuk Ritel",
-            description: "Sukuk Ritel Seri SR022-T5",
-            couponType: "Fixed Rate",
-            status: "Berlangsung",
-            statusType: "ongoing",
-            period: "16 Mei - 18 Jun 2025",
-            returnRate: "6.55%",
-            tenor: "5 Tahun",
-            icon: "⭐",
-            iconBg: "bg-purple-100",
-            totalValue: "Rp7,000,000,000,000",
-            minInvestment: "Rp1,000,000",
-            maxInvestment: "Rp10,000,000,000",
-            investmentPeriod: "5 tahun",
-            distribution: "Bulanan",
-            shareCompliance: "100%",
-            maturityDate: "10 Jun 2030",
-            couponPayment: "10 Setiap Bulan",
-            firstCoupon: "11 Agustus 2025"
-        },
-        "trade-finance-sukuk": {
-            code: "TFP001",
-            name: "Trade Finance Sukuk #fincards-receivables-sukuk-amoy",
-            description: "Sharia-Compliant Trade Finance",
-            couponType: "Fixed Rate",
-            status: "Berlangsung",
-            statusType: "ongoing",
-            period: "15 Mar - 15 Sep 2025",
-            returnRate: "12.5%",
-            tenor: "12 bulan",
-            progress: 100,
-            icon: "📈",
-            iconBg: "bg-blue-100",
-            totalValue: "8.5M USD",
-            minInvestment: "1,000 USD",
-            investmentPeriod: "12 months",
-            distribution: "Monthly",
-            shareCompliance: "100%"
-        }
-    }
-
-    return poolsData[id] || poolsData["sr022-t5"]
+// Helper function to get icon based on sukuk code
+const getSukukIcon = (sukukCode: string) => {
+  const code = sukukCode.toLowerCase()
+  if (code.includes('swdi')) return { icon: '🎭', bg: 'bg-purple-100' }
+  if (code.includes('sr')) return { icon: '⭐', bg: 'bg-blue-100' }
+  if (code.includes('sbr')) return { icon: '💰', bg: 'bg-red-100' }
+  if (code.includes('tfp')) return { icon: '📈', bg: 'bg-green-100' }
+  if (code.includes('res')) return { icon: '🏢', bg: 'bg-indigo-100' }
+  if (code.includes('crp')) return { icon: '🏭', bg: 'bg-orange-100' }
+  return { icon: '📋', bg: 'bg-gray-100' }
 }
 
 export function SukukDetailHeader({ sukukId }: SukukDetailHeaderProps) {
-    const sukuk = getSukukData(sukukId)
+    const { data: sukukPools, loading, error } = useSukukPools()
+    
+    if (loading) {
+        return (
+            <div className="bg-card rounded-xl p-6 border border-border">
+                <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    <span className="ml-2 text-muted-foreground">Memuat detail sukuk...</span>
+                </div>
+            </div>
+        )
+    }
+
+    if (error || !sukukPools) {
+        return (
+            <div className="bg-card rounded-xl p-6 border border-border">
+                <div className="text-center py-8">
+                    <p className="text-destructive">Gagal memuat detail sukuk: {error}</p>
+                </div>
+            </div>
+        )
+    }
+
+    const sukuk = sukukPools.find(pool => pool.id.toString() === sukukId)
+    
+    if (!sukuk) {
+        return (
+            <div className="bg-card rounded-xl p-6 border border-border">
+                <div className="text-center py-8">
+                    <p className="text-muted-foreground">Sukuk tidak ditemukan</p>
+                </div>
+            </div>
+        )
+    }
+
+    const statusInfo = getStatusInfo(sukuk.status)
+    const iconInfo = getSukukIcon(sukuk.sukuk_code)
 
     return (
         <div className="bg-card rounded-xl p-6 border border-border">
             <div className="flex items-start justify-between mb-8">
                 <div className="flex items-center space-x-4">
-                    <div className={`w-16 h-16 ${sukuk.iconBg} rounded-lg flex items-center justify-center text-2xl`}>
-                        {sukuk.icon}
+                    <div className={`w-16 h-16 ${iconInfo.bg} rounded-lg flex items-center justify-center text-2xl`}>
+                        {iconInfo.icon}
                     </div>
                     <div>
                         <div className="flex items-center space-x-3 mb-2">
-                            <h1 className="text-3xl font-bold text-foreground">{sukuk.code}</h1>
-                            <span
-                                className={`px-3 py-1 rounded-full text-xs font-medium ${sukuk.statusType === "ongoing"
-                                    ? "bg-primary/20 text-primary border border-primary/30"
-                                    : sukuk.statusType === "upcoming"
-                                        ? "bg-blue-50 text-blue-600 border border-blue-200"
-                                        : sukuk.statusType === "ended"
-                                            ? "bg-gray-100 text-gray-800 border border-gray-200"
-                                            : "bg-gray-100 text-gray-800 border border-gray-200"
-                                    }`}
-                            >
+                            <h1 className="text-3xl font-bold text-foreground">{sukuk.sukuk_code}</h1>
+                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusInfo.className}`}>
                                 {sukuk.status}
                             </span>
                         </div>
-                        <h2 className="text-lg text-muted-foreground">{sukuk.name}</h2>
+                        <h2 className="text-lg text-muted-foreground">{sukuk.sukuk_title}</h2>
                     </div>
                 </div>
 
@@ -134,7 +128,7 @@ export function SukukDetailHeader({ sukukId }: SukukDetailHeaderProps) {
                         <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                         <span className="text-green-700 font-medium text-sm">Imbal Hasil</span>
                     </div>
-                    <div className="text-green-800 font-bold text-2xl">{sukuk.returnRate} / Tahun</div>
+                    <div className="text-green-800 font-bold text-2xl">{sukuk.imbal_hasil}% / Tahun</div>
                 </div>
 
                 {/* Status */}
