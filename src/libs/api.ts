@@ -139,6 +139,48 @@ export interface UserProfile {
   lastActive: string;
 }
 
+export interface OwnedSukuk {
+  id: number;
+  contract_address: string;
+  token_id: number;
+  owner_address: string;
+  transaction_hash: string;
+  block_number: number;
+  sukuk_code: string;
+  sukuk_title: string;
+  sukuk_deskripsi: string;
+  status: string;
+  logo_url: string;
+  tenor: string;
+  imbal_hasil: string;
+  periode_pembelian: string;
+  jatuh_tempo: string;
+  kuota_nasional: number;
+  penerimaan_kupon: string;
+  minimum_pembelian: number;
+  tanggal_bayar_kupon: string;
+  maksimum_pembelian: number;
+  kupon_pertama: string;
+  tipe_kupon: string;
+  metadata_ready: boolean;
+  created_at: string;
+  updated_at: string;
+  latest_activities: {
+    type: string;
+    address: string;
+    amount: string; // Amount in wei as string
+    tx_hash: string;
+    timestamp: string;
+    sukuk_address: string;
+  }[];
+}
+
+export interface OwnedSukukResponse {
+  address: string;
+  total_count: number;
+  sukuk: OwnedSukuk[];
+}
+
 // API Client Class
 class ApiClient {
   private client: AxiosInstance;
@@ -247,6 +289,25 @@ class ApiClient {
   ): Promise<ApiResponse<TransactionHistoryResponse>> {
     try {
       const url = `${API_BASE_URL}/transaction-history/${address}${limit ? `?limit=${limit}` : ''}`;
+      const response = await axios.get(url);
+      return {
+        success: true,
+        data: response.data,
+      };
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(
+          error.response?.data?.message || error.message || "Network error"
+        );
+      }
+      throw new Error("Network error");
+    }
+  }
+
+  // Owned Sukuk API
+  async getOwnedSukuk(address: string): Promise<ApiResponse<OwnedSukukResponse>> {
+    try {
+      const url = `${API_BASE_URL}/owned-sukuk/${address}`;
       const response = await axios.get(url);
       return {
         success: true,
