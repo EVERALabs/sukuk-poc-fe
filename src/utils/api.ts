@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Currency formatting utilities
 export function formatCurrency(amount: number, currency: 'IDR' | 'USD' = 'IDR'): string {
   if (currency === 'IDR') {

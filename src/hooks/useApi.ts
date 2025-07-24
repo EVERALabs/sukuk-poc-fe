@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useCallback } from 'react';
-import { apiClient, ApiResponse, SukukPool, Portfolio, PortfolioHolding, Transaction, UserProfile } from '@/libs/api';
+import { apiClient, ApiResponse } from '@/libs/api';
 
 // Generic API hook
 export function useApi<T>(
@@ -163,13 +164,13 @@ export function useAuth() {
 }
 
 // Analytics hooks
-export function useInvestmentHistory(params?: {
-  period?: 'daily' | 'weekly' | 'monthly';
-  startDate?: string;
-  endDate?: string;
-}) {
-  return useApi(() => apiClient.getInvestmentHistory(params), [params]);
-}
+// export function useInvestmentHistory(params?: {
+//   period?: 'daily' | 'weekly' | 'monthly';
+//   startDate?: string;
+//   endDate?: string;
+// }) {
+//   return useApi(() => apiClient.getInvestmentHistory(params), [params]);
+// }
 
 export function useSukukDistribution() {
   return useApi(() => apiClient.getSukukDistribution(), []);

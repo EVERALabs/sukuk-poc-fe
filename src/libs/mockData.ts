@@ -1,4 +1,5 @@
-import { SukukPool, Portfolio, PortfolioHolding, Transaction, UserProfile } from './api';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { SukukPool, Portfolio, Transaction, UserProfile } from './api';
 
 // Mock Sukuk Pools Data - Updated to match new API structure
 export const mockSukukPools: SukukPool[] = [

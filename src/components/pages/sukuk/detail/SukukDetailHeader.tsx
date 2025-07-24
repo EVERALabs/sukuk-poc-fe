@@ -1,7 +1,6 @@
 "use client"
 
 import { useSukukPools } from "@/hooks/useApi"
-import { formatCurrency } from "@/utils/api"
 
 interface SukukDetailHeaderProps {
     sukukId: string
