@@ -24,6 +24,22 @@ export interface PaginatedResponse<T> {
   };
 }
 
+// Transaction History Types (based on actual API response)
+export interface TransactionActivity {
+  type: string; // e.g., "purchase"
+  address: string;
+  amount: string; // Large number as string
+  tx_hash: string;
+  timestamp: string; // ISO string
+  sukuk_address: string;
+}
+
+export interface TransactionHistoryResponse {
+  address: string;
+  total_count: number;
+  activities: TransactionActivity[];
+}
+
 // Sukuk Types
 export interface SukukPool {
   id: number;
@@ -222,6 +238,28 @@ class ApiClient {
       method: "GET",
       url: `/sukuk/pools/${id}`,
     });
+  }
+
+  // Transaction History API
+  async getTransactionHistory(
+    address: string, 
+    limit?: number
+  ): Promise<ApiResponse<TransactionHistoryResponse>> {
+    try {
+      const url = `${API_BASE_URL}/transaction-history/${address}${limit ? `?limit=${limit}` : ''}`;
+      const response = await axios.get(url);
+      return {
+        success: true,
+        data: response.data,
+      };
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(
+          error.response?.data?.message || error.message || "Network error"
+        );
+      }
+      throw new Error("Network error");
+    }
   }
 
   // Portfolio API

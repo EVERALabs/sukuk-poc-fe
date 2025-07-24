@@ -69,6 +69,11 @@ export function useTransaction(id: string) {
   return useApi(() => apiClient.getTransaction(id), [id]);
 }
 
+// Transaction History hooks
+export function useTransactionHistory(address: string, limit?: number) {
+  return useApi(() => apiClient.getTransactionHistory(address, limit), [address, limit]);
+}
+
 // User Profile hooks
 export function useUserProfile() {
   return useApi(() => apiClient.getUserProfile(), []);
