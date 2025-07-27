@@ -19,7 +19,6 @@ export function SukukChart() {
     const currentValue = 1465.7476
     const change = 13.98
     const changePercentage = 0.96
-    const currentNav = mockChartData[mockChartData.length - 1].nav
 
     const maxValue = Math.max(...mockChartData.map(d => d.value))
     const minValue = Math.min(...mockChartData.map(d => d.value))
