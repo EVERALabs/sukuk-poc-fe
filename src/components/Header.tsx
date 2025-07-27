@@ -169,11 +169,11 @@ export function Header({ centerNavItem, navItems }: HeaderProps) {
                                         )}
                                         <div
                                             className={cn("size-full absolute inset-0 rounded-full",
-                                                isActive ? "group-hover:bg-green-800" : "group-hover:bg-green-50"
+                                                isActive ? "group-hover:bg-green-800" : "group-hover:bg-green-100"
                                             )}
                                         ></div>
                                         <p className={cn("relative text-sm",
-                                            isActive ? "group-hover:text-white" : "group-hover:text-text-700"
+                                            isActive ? "group-hover:text-white" : "group-hover:text-green-800"
                                         )}>{link.name}</p>
                                     </button>
                                 )

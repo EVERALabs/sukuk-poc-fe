@@ -4,6 +4,7 @@ import { SukukInvestmentPanel } from "@/components/pages/sukuk/detail/SukukInves
 import { SukukRiskMetrics } from "@/components/pages/sukuk/detail/SukukRiskMetrics"
 import { SukukStatistics } from "@/components/pages/sukuk/detail/SukukStatistics"
 import { SukukTransactions } from "@/components/pages/sukuk/detail/SukukTransactions"
+import { SukukChart } from "@/components/pages/sukuk/detail/SukukChart"
 
 interface PoolDetailPageProps {
     params: Promise<{
@@ -33,6 +34,7 @@ export default async function PoolDetailPage({ params }: PoolDetailPageProps) {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
                     {/* Left Column - Main Info */}
                     <div className="lg:col-span-2 space-y-6">
+                        <SukukChart />
                         <SukukStatistics />
                         <SukukTransactions />
                         <SukukRiskMetrics />
