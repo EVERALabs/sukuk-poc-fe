@@ -2,11 +2,12 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { useRef, useState } from "react"
+import { useRef, useState, useEffect } from "react"
 import { motion, useMotionValueEvent, useScroll } from "framer-motion"
 import Image from "next/image";
 import { cn } from "@/utils/style"
 import { PrimaryButton } from "./ui/button"
+import { usePrivy, useWallets } from "@privy-io/react-auth"
 
 interface HeaderProps {
     centerNavItem?: string
@@ -41,8 +42,11 @@ const PRO_NAV_ITEMS = [
 
 export function Header({ centerNavItem, navItems }: HeaderProps) {
     const router = useRouter();
-    const pathname = usePathname()
-    const [isConnected, setIsConnected] = useState(false)
+    const pathname = usePathname();
+    const { login, authenticated, logout } = usePrivy();
+    const { wallets } = useWallets();
+    const connectedWallet = wallets[0];
+    const [showDropdown, setShowDropdown] = useState(false);
 
     const [isScroll, setIsScrolled] = useState(false);
     const { scrollY } = useScroll();
@@ -57,11 +61,43 @@ export function Header({ centerNavItem, navItems }: HeaderProps) {
     });
 
     const handleConnectWallet = () => {
-        setIsConnected(true)
-        setTimeout(() => {
-            alert("Wallet connected successfully!")
-        }, 500)
+        if (!authenticated) {
+            login();
+        } else {
+            setShowDropdown(!showDropdown);
+        }
     }
+
+    const handleLogout = async () => {
+        try {
+            await logout();
+            setShowDropdown(false);
+        } catch (error) {
+            console.error('Logout failed:', error);
+        }
+    }
+
+    const formatAddress = (address: string) => {
+        if (!address) return "";
+        return `${address.slice(0, 6)}...${address.slice(-4)}`;
+    }
+
+    // Close dropdown when clicking outside
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    // Add click outside listener
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setShowDropdown(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
     const getActiveNavItem = () => {
         if (pathname.includes("/pool")) return "Pool"
@@ -115,7 +151,7 @@ export function Header({ centerNavItem, navItems }: HeaderProps) {
                                 // Check if this is the Pro link and if we're in PRO state
                                 const isProLink = link.name === "Pro"
                                 const isActive = isProLink ? isProState : link.path === pathname
-                                
+
                                 return (
                                     <button
                                         key={link.name}
@@ -155,11 +191,10 @@ export function Header({ centerNavItem, navItems }: HeaderProps) {
                                 <Link
                                     key={item.name}
                                     href={item.path}
-                                    className={`text-sm font-medium transition-colors ${
-                                        isActive 
-                                            ? "text-black border-b-2 border-green-400 pb-1" 
-                                            : "text-gray-400 hover:text-white"
-                                    }`}
+                                    className={`text-sm font-medium transition-colors ${isActive
+                                        ? "text-black border-b-2 border-green-400 pb-1"
+                                        : "text-gray-400 hover:text-white"
+                                        }`}
                                 >
                                     {item.name}
                                 </Link>
@@ -192,12 +227,31 @@ export function Header({ centerNavItem, navItems }: HeaderProps) {
                     </nav>
                 )}
 
-                <PrimaryButton
-                    onClick={handleConnectWallet}
-                    className="text-xs h-full py-2 hover:bg-green-700 text-white"
-                >
-                    {isConnected ? "Dompet Terhubung" : "Hubungkan Dompet"}
-                </PrimaryButton>
+                <div className="relative" ref={dropdownRef}>
+                    <PrimaryButton
+                        onClick={handleConnectWallet}
+                        className="text-xs h-full py-2 hover:bg-green-700 text-white"
+                    >
+                        {authenticated && connectedWallet ? formatAddress(connectedWallet.address) : "Hubungkan Dompet"}
+                    </PrimaryButton>
+
+                    {showDropdown && authenticated && (
+                        <div className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                            <div className="px-4 py-2 text-sm text-gray-700 border-b border-gray-100">
+                                <div className="font-medium">Wallet Connected</div>
+                                <div className="text-xs text-gray-500 mt-1 break-all">
+                                    {connectedWallet?.address}
+                                </div>
+                            </div>
+                            <button
+                                onClick={handleLogout}
+                                className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                            >
+                                Disconnect Wallet
+                            </button>
+                        </div>
+                    )}
+                </div>
             </div>
         </motion.header>
     )
