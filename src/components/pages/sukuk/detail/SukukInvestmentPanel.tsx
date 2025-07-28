@@ -20,25 +20,17 @@ export function SukukInvestmentPanel({ contractAddress }: SukukInvestmentPanelPr
 
     const [activeTab, setActiveTab] = useState<"beli" | "jual">("beli")
     const [investAmount, setInvestAmount] = useState("")
-    const [buttonDisabled, setButtonDisabled] = useState(false);
     const [isApproving, setApproving] = useState(false);
     const [isConfirming, setConfirming] = useState(false);
-    const [isConfirmed, setConfirmed] = useState(false);
-    const [isSending, setSending] = useState(false);
-    const [isOpen, setIsOpen] = useState(false);
-    const onOpen = () => setIsOpen(true);
-    const onClose = () => setIsOpen(false);
 
     const {
         writeContractAsync: writeContractAsyncAllowance,
         isPending,
-        status,
     } = useWriteContract();
 
     const {
         writeContractAsync: writeContractBuy,
         status: statusBuy,
-        data: hash,
     } = useWriteContract();
 
     const { data: dataAllowanceIDRX, refetch: refetchAllowanceIDRX } =
@@ -96,14 +88,13 @@ export function SukukInvestmentPanel({ contractAddress }: SukukInvestmentPanelPr
         try {
             setApproving(true);
 
-            const tx = await writeContractAsyncAllowance({
+            await writeContractAsyncAllowance({
                 address: SMART_CONTRACT_IDRX_ADDRESS,
                 abi: erc20Abi,
                 functionName: "approve",
                 args: [SMART_CONTRACT_MANAGER_ADDRESS, BigInt(340282366920938463463374607431768211455)],
             });
             await refetchAllowanceIDRX();
-            console.log("ON SELLING ALLOWANCE", tx);
         } catch (e) {
             console.error("Error while approving: ", e);
         } finally {
@@ -117,8 +108,6 @@ export function SukukInvestmentPanel({ contractAddress }: SukukInvestmentPanelPr
         setConfirming(true);
 
         try {
-            onOpen();
-
             const tx = await writeContractBuy({
                 address: SMART_CONTRACT_MANAGER_ADDRESS,
                 abi: SukukManagerAbi,
@@ -127,11 +116,8 @@ export function SukukInvestmentPanel({ contractAddress }: SukukInvestmentPanelPr
             });
 
             console.log("TX HASH:", tx);
-            setConfirmed(true);
-            setSending(true);
             setInvestAmount("");
         } catch (e) {
-            onClose();
             console.error("ERROR WHILE BUYING", e);
         } finally {
             setApproving(false);
@@ -152,7 +138,7 @@ export function SukukInvestmentPanel({ contractAddress }: SukukInvestmentPanelPr
         try {
             if (activeTab === "beli") {
                 if (dataAllowanceIDRX || 0n >= BigInt(investAmount)) {
-                    await buy(BigInt(investAmount));
+                    await buy(BigInt(investAmount) * 100n);
                 } else {
                     await approveAllowanceBuy();
                 }
@@ -270,7 +256,7 @@ export function SukukInvestmentPanel({ contractAddress }: SukukInvestmentPanelPr
                 <PrimaryButton
                     onClick={handleInvest}
                     disabled={isButtonDisabled()}
-                    className="w-full h-12 text-base bg-primary hover:bg-primary/90 disabled:bg-muted disabled:cursor-not-allowed text-primary-foreground"
+                    className="w-full h-12 text-base bg-primary hover:bg-primary/90 disabled:bg-muted disabled:cursor-not-allowed text-primary-foreground text-center"
                 >
                     {getButtonText()}
                 </PrimaryButton>
@@ -293,7 +279,7 @@ export function SukukInvestmentPanel({ contractAddress }: SukukInvestmentPanelPr
 
                     <div className="flex justify-between">
                         <span className="text-muted-foreground">Kupon / Bulan</span>
-                        <span className="text-foreground font-medium">Rp{toCurrency(monthlyCoupon)}</span>
+                        <span className="text-foreground font-medium">Rp{toCurrency(monthlyCoupon.toFixed(2))}</span>
                     </div>
                 </div>
 

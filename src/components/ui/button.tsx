@@ -41,7 +41,7 @@ export const PrimaryButton = React.forwardRef<
             ) : (
                 <span
                     className={cn(
-                        "flex items-center gap-[10px]",
+                        "w-full mx-auto flex items-center justify-center gap-[10px]",
                         disabled ? "text-muted" : "text-white",
                         textClassName
                     )}
