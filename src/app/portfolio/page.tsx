@@ -2,7 +2,7 @@
 import { useState } from "react"
 import { GhostButton } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search, TrendingUp, PieChart, ChevronDown } from "lucide-react"
+import { Search, TrendingUp, PieChart, ChevronDown, Gift } from "lucide-react"
 import { useOwnedSukuk } from "@/hooks/useApi"
 import { formatCurrency, formatDate } from "@/utils/api"
 import { calculatePortfolioSummary, formatSukukHolding } from "@/utils/api"
@@ -43,6 +43,11 @@ export default function PortfolioPage() {
             default:
                 return 'bg-muted/20 text-muted-foreground border border-muted/30'
         }
+    }
+
+    const handleClaim = (sukukId: number) => {
+        // TODO: Implement claim functionality
+        console.log('Claiming rewards for sukuk:', sukukId);
     }
 
     return (
@@ -170,12 +175,13 @@ export default function PortfolioPage() {
                                         <th className="text-left py-4 px-6 font-medium">Jumlah Investasi</th>
                                         <th className="text-left py-4 px-6 font-medium">Jangka Waktu</th>
                                         <th className="text-left py-4 px-6 font-medium">Status</th>
+                                        <th className="text-left py-4 px-6 font-medium">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {loading ? (
                                         <tr>
-                                            <td colSpan={5} className="py-12 text-center">
+                                            <td colSpan={6} className="py-12 text-center">
                                                 <div className="flex items-center justify-center">
                                                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                                                     <span className="ml-2 text-muted-foreground">Memuat kepemilikan sukuk...</span>
@@ -184,7 +190,7 @@ export default function PortfolioPage() {
                                         </tr>
                                     ) : error ? (
                                         <tr>
-                                            <td colSpan={5} className="py-12 text-center">
+                                            <td colSpan={6} className="py-12 text-center">
                                                 <div className="text-muted-foreground">
                                                     <div className="w-16 h-16 bg-red-100 rounded-lg flex items-center justify-center mx-auto mb-4">
                                                         <span className="text-red-500 text-2xl">⚠️</span>
@@ -202,7 +208,7 @@ export default function PortfolioPage() {
                                         </tr>
                                     ) : filteredHoldings.length === 0 ? (
                                         <tr>
-                                            <td colSpan={5} className="py-12 text-center">
+                                            <td colSpan={6} className="py-12 text-center">
                                                 <div className="text-muted-foreground">
                                                     <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center mx-auto mb-4">
                                                         <Search className="w-8 h-8 text-muted-foreground" />
@@ -245,6 +251,15 @@ export default function PortfolioPage() {
                                                         <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusInfo}`}>
                                                             {sukuk.status}
                                                         </span>
+                                                    </td>
+                                                    <td className="py-4 px-6">
+                                                        <button
+                                                            onClick={() => handleClaim(sukuk.id)}
+                                                            className="inline-flex items-center space-x-1 px-3 py-1 bg-primary/10 hover:bg-primary/20 text-primary text-sm rounded-lg transition-colors"
+                                                        >
+                                                            <Gift className="w-4 h-4" />
+                                                            <span>Claim</span>
+                                                        </button>
                                                     </td>
                                                 </tr>
                                             )
@@ -314,7 +329,7 @@ export default function PortfolioPage() {
                                                     </span>
                                                 </div>
                                                 
-                                                <div className="grid grid-cols-2 gap-3 text-sm">
+                                                <div className="grid grid-cols-2 gap-3 text-sm mb-3">
                                                     <div>
                                                         <div className="text-muted-foreground">Imbal Hasil</div>
                                                         <div className="font-medium">{sukuk.imbal_hasil ? `${sukuk.imbal_hasil}%` : 'N/A'}</div>
@@ -328,6 +343,14 @@ export default function PortfolioPage() {
                                                         <div className="font-medium">{formatCurrency(holding.investedAmount, 'IDR')}</div>
                                                     </div>
                                                 </div>
+
+                                                <button
+                                                    onClick={() => handleClaim(sukuk.id)}
+                                                    className="w-full flex items-center justify-center space-x-1 px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary text-sm rounded-lg transition-colors"
+                                                >
+                                                    <Gift className="w-4 h-4" />
+                                                    <span>Claim Rewards</span>
+                                                </button>
                                             </div>
                                         )
                                     })}
