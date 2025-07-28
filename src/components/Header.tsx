@@ -14,32 +14,6 @@ interface HeaderProps {
     navItems?: string[]
 }
 
-const LINKS = [
-    {
-        name: "Lite",
-        path: "/buy",
-    },
-    {
-        name: "Pro",
-        path: "/sukuk",
-    },
-];
-
-const PRO_NAV_ITEMS = [
-    {
-        name: "Sukuk",
-        path: "/sukuk",
-    },
-    {
-        name: "Portofolio",
-        path: "/portfolio",
-    },
-    {
-        name: "Riwayat",
-        path: "/history",
-    },
-];
-
 export function Header({ centerNavItem, navItems }: HeaderProps) {
     const router = useRouter();
     const pathname = usePathname();
@@ -99,16 +73,6 @@ export function Header({ centerNavItem, navItems }: HeaderProps) {
         };
     }, []);
 
-    const getActiveNavItem = () => {
-        if (pathname.includes("/pool")) return "Pool"
-        if (pathname.includes("/portfolio")) return "Portfolio"
-        if (pathname.includes("/history")) return "History"
-        return ""
-    }
-
-    // Check if we're in PRO state (on sukuk, portfolio, or history pages)
-    const isProState = pathname.startsWith("/sukuk") || pathname.startsWith("/portfolio") || pathname.startsWith("/history")
-
     return (
         <motion.header
             initial={{
@@ -122,7 +86,7 @@ export function Header({ centerNavItem, navItems }: HeaderProps) {
                     duration: 0.6,
                 },
             }}
-            className={`fixed z-50 flex items-center justify-between gap-4 w-full h-[72px] px-4 py-4  lg:px-24 transition-all duration-500 ${isScroll
+            className={`fixed z-50 flex items-center justify-between gap-4 w-full h-[72px] px-4 py-4 lg:px-24 transition-all duration-500 ${isScroll
                 ? "backdrop-blur-sm bg-white/0"
                 : "backdrop-blur-0 bg-green-950/0"
                 }`}
@@ -142,13 +106,13 @@ export function Header({ centerNavItem, navItems }: HeaderProps) {
                         </div>
                     </div>
 
-                    <div className="flex items-center space-x-2">
+                    {/* Hide Lite/Pro toggle for mobile */}
+                    {/* <div className="flex items-center space-x-2">
                         <div className={cn(
                             "hidden p-1 rounded-full lg:flex flex-1 max-w-[397px] font-onestMedium gap-4",
                             "bg-green-950")}
                         >
                             {LINKS.map((link) => {
-                                // Check if this is the Pro link and if we're in PRO state
                                 const isProLink = link.name === "Pro"
                                 const isActive = isProLink ? isProState : link.path === pathname
 
@@ -179,11 +143,12 @@ export function Header({ centerNavItem, navItems }: HeaderProps) {
                                 )
                             })}
                         </div>
-                    </div>
+                    </div> */}
                 </div>
 
+                {/* Hide center navigation for mobile - will be replaced with bottom nav */}
                 {/* PRO State Navigation */}
-                {isProState && (
+                {/* {isProState && (
                     <nav className="absolute left-1/2 transform -translate-x-1/2 flex items-center space-x-8">
                         {PRO_NAV_ITEMS.map((item) => {
                             const isActive = pathname.startsWith(item.path)
@@ -201,15 +166,15 @@ export function Header({ centerNavItem, navItems }: HeaderProps) {
                             )
                         })}
                     </nav>
-                )}
+                )} */}
 
-                {centerNavItem && !isProState && (
+                {/* {centerNavItem && !isProState && (
                     <nav className="absolute left-1/2 transform -translate-x-1/2">
                         <span className="text-white border-b-2 border-green-400 pb-1 text-sm font-medium">{centerNavItem}</span>
                     </nav>
-                )}
+                )} */}
 
-                {navItems && !isProState && (
+                {/* {navItems && !isProState && (
                     <nav className="flex items-center space-x-8">
                         {navItems.map((item) => {
                             const isActive = getActiveNavItem() === item
@@ -225,7 +190,7 @@ export function Header({ centerNavItem, navItems }: HeaderProps) {
                             )
                         })}
                     </nav>
-                )}
+                )} */}
 
                 <div className="relative" ref={dropdownRef}>
                     <PrimaryButton

@@ -1,26 +1,50 @@
 "use client"
 
+import { Copy } from "lucide-react"
+
 export function SukukPoolsOverview() {
     return (
-        <div className="mt-20">
-            {/* Summary Cards */}
-            <div className="grid grid-cols-2 gap-6 mb-8">
-                <div className="bg-gradient-to-r from-primary/20 to-primary/10 rounded-xl p-6 border border-primary/30">
-                    <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-primary text-sm font-medium">Total Investasi</h3>
-                        <span className="text-primary text-lg">IDR</span>
-                    </div>
-                    <p className="text-foreground text-3xl font-bold">Rp 12.000.000.000.000</p>
+        <div className="mt-20 px-6">
+            {/* Portfolio Header */}
+            <div className="mb-6">
+                <div className="flex items-center justify-between mb-2">
+                    <h2 className="text-muted-foreground text-sm font-medium">Nilai Portfolio</h2>
+                    <Copy className="w-4 h-4 text-muted-foreground" />
                 </div>
-
-                <div className="bg-gradient-to-r from-primary/20 to-primary/10 rounded-xl p-6 border border-primary/30">
-                    <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-primary text-sm font-medium">Total Keuntungan</h3>
-                        <span className="text-primary text-lg">IDR</span>
-                    </div>
-                    <p className="text-foreground text-3xl font-bold">Rp 5.000.000</p>
+                <div className="flex items-baseline space-x-2 mb-1">
+                    <h1 className="text-foreground text-4xl font-bold">Rp0</h1>
                 </div>
             </div>
+
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 gap-4 mb-6">
+                {/* Keuntungan */}
+                <div className="bg-card rounded-xl p-4 border border-border">
+                    <div className="text-muted-foreground text-sm font-medium mb-2">Keuntungan</div>
+                    <div className="text-foreground text-xl font-bold">Rp0</div>
+                    <div className="text-muted-foreground text-xs mt-1">0.00%</div>
+                </div>
+
+                {/* Imbal Hasil */}
+                <div className="bg-card rounded-xl p-4 border border-border">
+                    <div className="text-muted-foreground text-sm font-medium mb-2">Imbal Hasil</div>
+                    <div className="text-foreground text-xl font-bold">0.00%</div>
+                </div>
+            </div>
+
+            {/* Promotion Banner */}
+            <div className="bg-primary/10 border border-primary/20 rounded-xl p-4 mb-6">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                        <span className="text-xs">✨</span>
+                        <span className="text-primary text-sm font-medium">Pakai RDN Wallet, Gratis Biaya Pembayaran</span>
+                    </div>
+                    <button className="text-primary text-xs hover:underline">×</button>
+                </div>
+            </div>
+
+
+
         </div>
     )
 }
