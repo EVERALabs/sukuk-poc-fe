@@ -78,7 +78,7 @@ export default function HistoryPage() {
                             />
                         </div>
 
-                        <OutlineButton
+                        {/* <OutlineButton
                             className="border-border text-foreground bg-transparent hover:bg-accent"
                         >
                             <Filter className="w-4 h-4 mr-2" />
@@ -91,16 +91,16 @@ export default function HistoryPage() {
                         >
                             <Filter className="w-4 h-4 mr-2" />
                             Jenis Pool
-                        </OutlineButton>
+                        </OutlineButton> */}
                     </div>
 
-                    <OutlineButton
+                    {/* <OutlineButton
 
                         className="border-border text-foreground bg-transparent hover:bg-accent"
                     >
                         <Eye className="w-4 h-4 mr-2" />
                         Lihat
-                    </OutlineButton>
+                    </OutlineButton> */}
                 </div>
 
                 {/* Table */}
