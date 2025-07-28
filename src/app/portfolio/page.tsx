@@ -46,28 +46,28 @@ export default function PortfolioPage() {
     }
 
     return (
-        <div className="min-h-[calc(100vh-80px)] bg-background px-6 py-6">
-            <div className="p-6 mt-12">
+        <div className="min-h-[calc(100vh-80px)] bg-background px-4 md:px-6 py-4 md:py-6">
+            <div className="p-4 md:p-6 mt-8 md:mt-12">
                 {/* Overview Section */}
-                <div className="mb-8">
-                    <h1 className="text-2xl font-bold text-foreground mb-6">Ringkasan Portofolio</h1>
+                <div className="mb-6 md:mb-8">
+                    <h1 className="text-xl md:text-2xl font-bold text-foreground mb-4 md:mb-6">Ringkasan Portofolio</h1>
 
-                    <div className="grid grid-cols-3 gap-6">
-                        <div className="bg-card rounded-lg p-6 border border-border">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+                        <div className="bg-card rounded-lg p-4 md:p-6 border border-border">
                             <p className="text-muted-foreground text-sm mb-2">Total Nilai Portofolio</p>
-                            <p className="text-foreground text-2xl font-bold">
+                            <p className="text-foreground text-xl md:text-2xl font-bold">
                                 {loading ? "..." : formatCurrency(portfolioSummary.totalValue, 'IDR')}
                             </p>
                         </div>
-                        <div className="bg-card rounded-lg p-6 border border-border">
+                        <div className="bg-card rounded-lg p-4 md:p-6 border border-border">
                             <p className="text-muted-foreground text-sm mb-2">Total Investasi</p>
-                            <p className="text-foreground text-2xl font-bold">
+                            <p className="text-foreground text-xl md:text-2xl font-bold">
                                 {loading ? "..." : formatCurrency(portfolioSummary.totalInvestments, 'IDR')}
                             </p>
                         </div>
-                        <div className="bg-card rounded-lg p-6 border border-border">
+                        <div className="bg-card rounded-lg p-4 md:p-6 border border-border">
                             <p className="text-muted-foreground text-sm mb-2">Rata-rata Imbal Hasil</p>
-                            <p className="text-foreground text-2xl font-bold">
+                            <p className="text-foreground text-xl md:text-2xl font-bold">
                                 {loading ? "..." : `${portfolioSummary.averageReturn.toFixed(2)}%`}
                             </p>
                         </div>
@@ -75,36 +75,36 @@ export default function PortfolioPage() {
                 </div>
 
                 {/* Analytics Section */}
-                <div className="mb-8">
-                    <h2 className="text-xl font-bold text-foreground mb-6">Analisis Investasi</h2>
+                <div className="mb-6 md:mb-8">
+                    <h2 className="text-lg md:text-xl font-bold text-foreground mb-4 md:mb-6">Analisis Investasi</h2>
 
-                    <div className="grid grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                         {/* Historical Investments */}
-                        <div className="bg-card rounded-lg p-6 border border-border">
-                            <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-lg font-semibold text-foreground flex items-center">
-                                    <TrendingUp className="w-5 h-5 mr-2" />
+                        <div className="bg-card rounded-lg p-4 md:p-6 border border-border">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
+                                <h3 className="text-base md:text-lg font-semibold text-foreground flex items-center mb-3 md:mb-0">
+                                    <TrendingUp className="w-4 h-4 md:w-5 md:h-5 mr-2" />
                                     Riwayat Investasi
                                 </h3>
-                                <div className="flex space-x-2">
-                                    <GhostButton className="text-primary bg-primary/20">
+                                <div className="flex space-x-2 overflow-x-auto pb-2 md:pb-0">
+                                    <GhostButton className="text-primary bg-primary/20 text-sm whitespace-nowrap">
                                         Harian
                                     </GhostButton>
-                                    <GhostButton className="text-muted-foreground hover:text-foreground">
+                                    <GhostButton className="text-muted-foreground hover:text-foreground text-sm whitespace-nowrap">
                                         Mingguan
                                     </GhostButton>
-                                    <GhostButton className="text-muted-foreground hover:text-foreground">
+                                    <GhostButton className="text-muted-foreground hover:text-foreground text-sm whitespace-nowrap">
                                         Bulanan
                                     </GhostButton>
                                 </div>
                             </div>
 
-                            <div className="h-64 flex items-center justify-center bg-muted/50 rounded-lg border border-border">
+                            <div className="h-48 md:h-64 flex items-center justify-center bg-muted/50 rounded-lg border border-border">
                                 <div className="text-center">
-                                    <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center mx-auto mb-3">
-                                        <TrendingUp className="w-6 h-6 text-muted-foreground" />
+                                    <div className="w-10 h-10 md:w-12 md:h-12 bg-muted rounded-lg flex items-center justify-center mx-auto mb-3">
+                                        <TrendingUp className="w-5 h-5 md:w-6 md:h-6 text-muted-foreground" />
                                     </div>
-                                    <p className="text-muted-foreground font-medium">
+                                    <p className="text-muted-foreground font-medium text-sm md:text-base">
                                         {loading ? "Memuat data..." : "Data grafik akan segera tersedia"}
                                     </p>
                                 </div>
@@ -112,18 +112,18 @@ export default function PortfolioPage() {
                         </div>
 
                         {/* Portfolio Distribution */}
-                        <div className="bg-card rounded-lg p-6 border border-border">
-                            <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
-                                <PieChart className="w-5 h-5 mr-2" />
+                        <div className="bg-card rounded-lg p-4 md:p-6 border border-border">
+                            <h3 className="text-base md:text-lg font-semibold text-foreground mb-4 flex items-center">
+                                <PieChart className="w-4 h-4 md:w-5 md:h-5 mr-2" />
                                 Distribusi Sukuk
                             </h3>
 
-                            <div className="h-64 flex items-center justify-center bg-muted/50 rounded-lg border border-border">
+                            <div className="h-48 md:h-64 flex items-center justify-center bg-muted/50 rounded-lg border border-border">
                                 <div className="text-center">
-                                    <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center mx-auto mb-3">
-                                        <PieChart className="w-6 h-6 text-muted-foreground" />
+                                    <div className="w-10 h-10 md:w-12 md:h-12 bg-muted rounded-lg flex items-center justify-center mx-auto mb-3">
+                                        <PieChart className="w-5 h-5 md:w-6 md:h-6 text-muted-foreground" />
                                     </div>
-                                    <p className="text-muted-foreground font-medium">
+                                    <p className="text-muted-foreground font-medium text-sm md:text-base">
                                         {loading ? "Memuat data..." : 
                                          filteredHoldings.length > 0 ? "Data distribusi akan segera tersedia" : "Belum Ada Data"}
                                     </p>
@@ -135,33 +135,33 @@ export default function PortfolioPage() {
 
                 {/* Sukuk Holdings */}
                 <div>
-                    <h2 className="text-xl font-bold text-foreground mb-6">Kepemilikan Sukuk</h2>
+                    <h2 className="text-lg md:text-xl font-bold text-foreground mb-4 md:mb-6">Kepemilikan Sukuk</h2>
 
                     <div className="bg-card rounded-lg border border-border">
                         {/* Filter and Controls */}
-                        <div className="p-6 border-b border-border">
-                            <div className="flex items-center justify-between">
-                                <div className="relative">
+                        <div className="p-4 md:p-6 border-b border-border">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-0">
+                                <div className="relative w-full md:w-auto">
                                     <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
                                     <Input
                                         type="text"
                                         placeholder="Cari pool sukuk..."
-                                        className="bg-background border border-border rounded-lg px-4 py-2 pl-10 text-sm focus:outline-none focus:border-primary text-foreground placeholder-muted-foreground w-64"
+                                        className="bg-background border border-border rounded-lg px-4 py-2 pl-10 text-sm focus:outline-none focus:border-primary text-foreground placeholder-muted-foreground w-full md:w-64"
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                     />
                                 </div>
-                                <GhostButton
-                                    className="border-border text-foreground bg-transparent hover:bg-accent"
+                                {/* <GhostButton
+                                    className="border-border text-foreground bg-transparent hover:bg-accent md:ml-2"
                                 >
                                     Kolom
                                     <ChevronDown className="w-4 h-4 ml-2" />
-                                </GhostButton>
+                                </GhostButton> */}
                             </div>
                         </div>
 
-                        {/* Table */}
-                        <div className="overflow-x-auto">
+                        {/* Table/Card View */}
+                        <div className="hidden md:block overflow-x-auto">
                             <table className="w-full">
                                 <thead>
                                     <tr className="text-muted-foreground text-sm border-b border-border">
@@ -252,6 +252,87 @@ export default function PortfolioPage() {
                                     )}
                                 </tbody>
                             </table>
+                        </div>
+
+                        {/* Mobile Card View */}
+                        <div className="md:hidden">
+                            {loading ? (
+                                <div className="p-6 text-center">
+                                    <div className="flex items-center justify-center">
+                                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                                        <span className="ml-2 text-sm text-muted-foreground">Memuat kepemilikan sukuk...</span>
+                                    </div>
+                                </div>
+                            ) : error ? (
+                                <div className="p-6 text-center">
+                                    <div className="text-muted-foreground">
+                                        <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                                            <span className="text-red-500 text-xl">⚠️</span>
+                                        </div>
+                                        <p className="font-medium text-red-600 text-sm">Gagal memuat data</p>
+                                        <p className="text-xs mt-1">{error}</p>
+                                        <button 
+                                            onClick={refetch}
+                                            className="mt-2 px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-sm hover:bg-primary/90"
+                                        >
+                                            Coba Lagi
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : filteredHoldings.length === 0 ? (
+                                <div className="p-6 text-center">
+                                    <div className="text-muted-foreground">
+                                        <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center mx-auto mb-3">
+                                            <Search className="w-6 h-6 text-muted-foreground" />
+                                        </div>
+                                        <p className="font-medium text-sm">
+                                            {searchTerm ? "Tidak ada hasil pencarian" : "Belum ada kepemilikan sukuk"}
+                                        </p>
+                                        <p className="text-xs mt-1">
+                                            {searchTerm 
+                                                ? `Tidak ditemukan sukuk dengan kata kunci "${searchTerm}"`
+                                                : "Mulai berinvestasi di pool sukuk untuk melihat kepemilikan Anda di sini"
+                                            }
+                                        </p>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="divide-y divide-border">
+                                    {filteredHoldings.map((sukuk) => {
+                                        const holding = formatSukukHolding(sukuk);
+                                        const statusInfo = getStatusInfo(sukuk.status);
+                                        
+                                        return (
+                                            <div key={sukuk.id} className="p-4">
+                                                <div className="flex items-start justify-between mb-3">
+                                                    <div>
+                                                        <div className="font-semibold text-foreground">{sukuk.sukuk_code}</div>
+                                                        <div className="text-muted-foreground text-sm">{sukuk.sukuk_title}</div>
+                                                    </div>
+                                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusInfo}`}>
+                                                        {sukuk.status}
+                                                    </span>
+                                                </div>
+                                                
+                                                <div className="grid grid-cols-2 gap-3 text-sm">
+                                                    <div>
+                                                        <div className="text-muted-foreground">Imbal Hasil</div>
+                                                        <div className="font-medium">{sukuk.imbal_hasil ? `${sukuk.imbal_hasil}%` : 'N/A'}</div>
+                                                    </div>
+                                                    <div>
+                                                        <div className="text-muted-foreground">Jangka Waktu</div>
+                                                        <div className="font-medium">{sukuk.tenor || 'N/A'}</div>
+                                                    </div>
+                                                    <div className="col-span-2">
+                                                        <div className="text-muted-foreground">Jumlah Investasi</div>
+                                                        <div className="font-medium">{formatCurrency(holding.investedAmount, 'IDR')}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
