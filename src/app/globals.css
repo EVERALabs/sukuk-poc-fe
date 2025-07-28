@@ -35,10 +35,36 @@
   font-display: swap;
 }
 
+/* Safe area insets for mobile devices */
+@supports (padding: max(0px)) {
+  .pb-safe {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
+  
+  .safe-area-inset-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Mobile-specific styles */
+@media (max-width: 768px) {
+  /* Improve touch targets */
+  .mobile-touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Better scrolling on mobile */
+  .mobile-scroll {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+}
+
 :root {
   --background-dark: #263238;
   --radius: 0.625rem;
-  --background: #E8F5E9;
+  --background: #FFFFFF;
   --foreground: #263238;
   --card: #FFFFFF;
   --card-foreground: #263238;
@@ -48,21 +74,21 @@
   --primary-foreground: #FFFFFF;
   --secondary: #A5D6A7;
   --secondary-foreground: #263238;
-  --muted: #E8F5E9;
+  --muted: #F8F9FA;
   --muted-foreground: #B0BEC5;
-  --accent: #A5D6A7;
+  --accent: #F8F9FA;
   --accent-foreground: #263238;
   --destructive: #EF4444;
-  --border: #A5D6A7;
-  --input: #A5D6A7;
+  --border: #E0E0E0;
+  --input: #E0E0E0;
   --ring: #2E7D32;
-  --sidebar: #E8F5E9;
+  --sidebar: #FFFFFF;
   --sidebar-foreground: #263238;
   --sidebar-primary: #2E7D32;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #A5D6A7;
+  --sidebar-accent: #F8F9FA;
   --sidebar-accent-foreground: #263238;
-  --sidebar-border: #A5D6A7;
+  --sidebar-border: #E0E0E0;
   --sidebar-ring: #2E7D32;
 }
 
@@ -139,11 +165,11 @@
   --color-gradient-green-start: #A5D6A7; /* Secondary */
   --color-gradient-green-end: #2E7D32;   /* Primary */
   --color-gradient-gold: #FFD700;
-  --color-gradient-light: #E8F5E9;
+  --color-gradient-light: #FFFFFF;
   --color-gradient-dark: #263238;
 
   /* Border colors */
-  --color-border: #cdedf7;
+  --color-border: #E0E0E0;
 
   /* Muted colors */
   --color-muted: #e2e9ea;
@@ -226,7 +252,7 @@
 }
 
 .gradient-background {
-  background: linear-gradient(300deg, #ffffff, #ecfcff);
+  background: linear-gradient(300deg, #ffffff, #ffffff);
   background-size: 120% 120%;
   animation: gradient-animation 10s ease infinite;
 }

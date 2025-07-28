@@ -84,7 +84,18 @@ export function SukukPoolsTable() {
     }
 
     return (
-        <div>
+        <div className="px-6">
+            {/* Produk Investasi Header */}
+            <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-2">
+                    <span className="text-primary text-lg"></span>
+                    <h2 className="text-foreground font-semibold">Produk Investasi</h2>
+                </div>
+                <Link href="/explore" className="text-primary text-sm font-medium hover:underline">
+                    Explore
+                </Link>
+            </div>
+
             {/* Pools Table */}
             <div className="bg-card rounded-lg border border-border">
                 <div className="overflow-x-auto">
