@@ -4,23 +4,166 @@ import { useState } from "react"
 import { PrimaryButton } from "@/components/ui/button"
 import { PrimaryInput } from "@/components/ui/input"
 import { toCurrency } from "@/utils/string"
+import { useAccount, useReadContract, useWriteContract } from "wagmi"
+import { erc20Abi } from "viem"
+import { SMART_CONTRACT_IDRX_ADDRESS, SMART_CONTRACT_MANAGER_ADDRESS } from "@/libs/contracts/contractAddress"
+import { SukukManagerAbi } from "@/libs/contracts/abi/SukukManagerAbi"
+import { usePrivy } from "@privy-io/react-auth"
 
-export function SukukInvestmentPanel() {
+interface SukukInvestmentPanelProps {
+    contractAddress: string
+}
+
+export function SukukInvestmentPanel({ contractAddress }: SukukInvestmentPanelProps) {
+    const { address, isConnected } = useAccount();
+    const { login } = usePrivy();
+
     const [activeTab, setActiveTab] = useState<"beli" | "jual">("beli")
     const [investAmount, setInvestAmount] = useState("")
-    const [isConnected, setIsConnected] = useState(false)
+    const [buttonDisabled, setButtonDisabled] = useState(false);
+    const [isApproving, setApproving] = useState(false);
+    const [isConfirming, setConfirming] = useState(false);
+    const [isConfirmed, setConfirmed] = useState(false);
+    const [isSending, setSending] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
+    const onOpen = () => setIsOpen(true);
+    const onClose = () => setIsOpen(false);
 
-    const handleConnectWallet = () => {
-        setIsConnected(true)
-        setTimeout(() => {
-            alert("Dompet berhasil terhubung!")
-        }, 500)
-    }
+    const {
+        writeContractAsync: writeContractAsyncAllowance,
+        isPending,
+        status,
+    } = useWriteContract();
 
-    const handleInvest = () => {
-        if (!investAmount || Number.parseFloat(investAmount) <= 0) return
-        alert(`Investasi ${investAmount} Rupiah dalam pool ini`)
-    }
+    const {
+        writeContractAsync: writeContractBuy,
+        status: statusBuy,
+        data: hash,
+    } = useWriteContract();
+
+    const { data: dataAllowanceIDRX, refetch: refetchAllowanceIDRX } =
+        useReadContract({
+            abi: erc20Abi,
+            address: SMART_CONTRACT_IDRX_ADDRESS,
+            functionName: "allowance",
+            args: [address || "0x0000000000000000000000000000000000000000" as `0x${string}`, SMART_CONTRACT_MANAGER_ADDRESS],
+        });
+
+    // Calculate button text based on state
+    const getButtonText = () => {
+        if (!isConnected) {
+            return "Hubungkan Dompet";
+        }
+
+        if (isApproving || isConfirming || isPending || statusBuy === "pending") {
+            return "Sedang di proses";
+        }
+
+        if (activeTab === "beli") {
+            return "Beli Sekarang";
+        }
+
+        if (activeTab === "jual") {
+            return "Jual Sekarang";
+        }
+
+        return "Hubungkan Dompet";
+    };
+
+    // Calculate if button should be disabled
+    const isButtonDisabled = () => {
+        if (!isConnected || !address) {
+            return false; // Allow wallet connection
+        }
+
+        if (isApproving || isConfirming || isPending || statusBuy === "pending") {
+            return true; // Disable during processing
+        }
+
+        if (!investAmount || isNaN(Number(investAmount)) || Number(investAmount) <= 0) {
+            return true; // Disable if no valid amount
+        }
+
+        return false;
+    };
+
+    const approveAllowanceBuy = async () => {
+        if (!address) {
+            console.error("No wallet address available");
+            return;
+        }
+
+        try {
+            setApproving(true);
+
+            const tx = await writeContractAsyncAllowance({
+                address: SMART_CONTRACT_IDRX_ADDRESS,
+                abi: erc20Abi,
+                functionName: "approve",
+                args: [SMART_CONTRACT_MANAGER_ADDRESS, BigInt(340282366920938463463374607431768211455)],
+            });
+            await refetchAllowanceIDRX();
+            console.log("ON SELLING ALLOWANCE", tx);
+        } catch (e) {
+            console.error("Error while approving: ", e);
+        } finally {
+            setApproving(false);
+            setConfirming(false);
+        }
+    };
+
+    const buy = async (amount: bigint) => {
+        if (isConfirming || !address) return;
+        setConfirming(true);
+
+        try {
+            onOpen();
+
+            const tx = await writeContractBuy({
+                address: SMART_CONTRACT_MANAGER_ADDRESS,
+                abi: SukukManagerAbi,
+                functionName: "buySukuk",
+                args: [contractAddress as `0x${string}`, amount, SMART_CONTRACT_IDRX_ADDRESS],
+            });
+
+            console.log("TX HASH:", tx);
+            setConfirmed(true);
+            setSending(true);
+            setInvestAmount("");
+        } catch (e) {
+            onClose();
+            console.error("ERROR WHILE BUYING", e);
+        } finally {
+            setApproving(false);
+            setConfirming(false);
+        }
+    };
+
+    const handleInvest = async () => {
+        if (!isConnected || !address) {
+            login();
+            return;
+        }
+
+        if (!investAmount || isNaN(Number(investAmount)) || Number(investAmount) <= 0) {
+            return;
+        }
+
+        try {
+            if (activeTab === "beli") {
+                if (dataAllowanceIDRX || 0n >= BigInt(investAmount)) {
+                    await buy(BigInt(investAmount));
+                } else {
+                    await approveAllowanceBuy();
+                }
+            } else {
+                // TODO: Implement sell functionality
+                console.log("Sell functionality not implemented yet");
+            }
+        } catch (e) {
+            console.error("Error in handleInvest:", e);
+        }
+    };
 
     // Calculate projections
     const principal = Number.parseFloat(investAmount) || 100000000 // Default 100M for example
@@ -39,8 +182,8 @@ export function SukukInvestmentPanel() {
                     <button
                         onClick={() => setActiveTab("beli")}
                         className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all cursor-pointer ${activeTab === "beli"
-                                ? "bg-primary text-primary-foreground shadow-sm"
-                                : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                            ? "bg-primary text-primary-foreground shadow-sm"
+                            : "text-muted-foreground hover:text-foreground hover:bg-accent"
                             }`}
                     >
                         Beli
@@ -48,8 +191,8 @@ export function SukukInvestmentPanel() {
                     <button
                         onClick={() => setActiveTab("jual")}
                         className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all cursor-pointer ${activeTab === "jual"
-                                ? "bg-primary text-primary-foreground shadow-sm"
-                                : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                            ? "bg-primary text-primary-foreground shadow-sm"
+                            : "text-muted-foreground hover:text-foreground hover:bg-accent"
                             }`}
                     >
                         Jual
@@ -124,22 +267,13 @@ export function SukukInvestmentPanel() {
                     </div>
                 )}
 
-                {!isConnected ? (
-                    <PrimaryButton
-                        onClick={handleConnectWallet}
-                        className="w-full h-12 text-base"
-                    >
-                        HUBUNGKAN DOMPET
-                    </PrimaryButton>
-                ) : (
-                    <PrimaryButton
-                        onClick={handleInvest}
-                        disabled={!investAmount || Number.parseFloat(investAmount) <= 0}
-                        className="w-full h-12 bg-primary hover:bg-primary/90 disabled:bg-muted disabled:cursor-not-allowed text-primary-foreground"
-                    >
-                        {activeTab === "beli" ? "Beli Sekarang" : "Jual Sekarang"}
-                    </PrimaryButton>
-                )}
+                <PrimaryButton
+                    onClick={handleInvest}
+                    disabled={isButtonDisabled()}
+                    className="w-full h-12 text-base bg-primary hover:bg-primary/90 disabled:bg-muted disabled:cursor-not-allowed text-primary-foreground"
+                >
+                    {getButtonText()}
+                </PrimaryButton>
             </div>
 
             {/* Investment Simulation */}

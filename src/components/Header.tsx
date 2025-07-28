@@ -1,22 +1,12 @@
 "use client"
 
-import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
+import Image from "next/image";
 import { useRef, useState, useEffect } from "react"
 import { motion, useMotionValueEvent, useScroll } from "framer-motion"
-import Image from "next/image";
-import { cn } from "@/utils/style"
 import { PrimaryButton } from "./ui/button"
 import { usePrivy, useWallets } from "@privy-io/react-auth"
 
-interface HeaderProps {
-    centerNavItem?: string
-    navItems?: string[]
-}
-
-export function Header({ centerNavItem, navItems }: HeaderProps) {
-    const router = useRouter();
-    const pathname = usePathname();
+export function Header() {
     const { login, authenticated, logout } = usePrivy();
     const { wallets } = useWallets();
     const connectedWallet = wallets[0];

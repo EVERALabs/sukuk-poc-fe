@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
-import PrivyProviders from "@/providers/PrivyProvider";
+import { ClientProviders } from "@/providers/ClientProviders";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,13 +38,15 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <PrivyProviders>
-          <Header />
-          <main className="pb-24 mobile-scroll">
-            {children}
-          </main>
-          <MobileBottomNav />
-        </PrivyProviders>
+        <ClientProviders>
+          <div>
+            <Header />
+            <main className="pb-24 mobile-scroll">
+              {children}
+            </main>
+            <MobileBottomNav />
+          </div>
+        </ClientProviders>
       </body>
     </html>
   );
