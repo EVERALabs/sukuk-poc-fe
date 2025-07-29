@@ -186,6 +186,10 @@ export function useSukukDistribution() {
   return useApi(() => apiClient.getSukukDistribution(), []);
 }
 
+export function useSukukSnapshots(sukukAddress: string) {
+  return useApi(() => apiClient.getSukukSnapshots(sukukAddress), [sukukAddress]);
+}
+
 // Redemption hooks
 export function useRedemptions() {
   return useApi(() => apiClient.getRedemptions(), []);

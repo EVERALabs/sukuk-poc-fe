@@ -7,13 +7,28 @@ import { PrimaryButton } from "@/components/ui/button"
 import { AddSukukForm } from "./AddSukukForm"
 import { useSukukPools } from "@/hooks/useApi"
 import { formatCurrency } from "@/utils/api"
+import { SMART_CONTRACT_IDRX_ADDRESS, SMART_CONTRACT_MANAGER_ADDRESS } from "@/libs/contracts/contractAddress"
+import { SukukManagerAbi } from "@/libs/contracts/abi/SukukManagerAbi"
+import { useWriteContract } from "wagmi"
+import { apiClient } from "@/libs/api"
 
 export function SukukDataTable() {
     const [searchTerm, setSearchTerm] = useState("")
     const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+    const [isTakingSnapshot, setIsTakingSnapshot] = useState(false)
+    const [snapshotError, setSnapshotError] = useState<string | null>(null)
+    const [isDistributeModalOpen, setIsDistributeModalOpen] = useState(false)
+    const [distributeAmount, setDistributeAmount] = useState("")
+    const [selectedSukukAddress, setSelectedSukukAddress] = useState<string | null>(null)
+    const [isDistributing, setIsDistributing] = useState(false)
     const { data: sukukPools, loading, error, refetch } = useSukukPools()
-    
-    const filteredData = sukukPools?.filter(sukuk => 
+
+    const {
+        writeContractAsync: writeContractTakeSnapshot,
+        status: statusTakeSnapshot,
+    } = useWriteContract();
+
+    const filteredData = sukukPools?.filter(sukuk =>
         sukuk.sukuk_code.toLowerCase().includes(searchTerm.toLowerCase()) ||
         sukuk.sukuk_title.toLowerCase().includes(searchTerm.toLowerCase())
     ) || []
@@ -39,14 +54,84 @@ export function SukukDataTable() {
         }
     }
 
-    const handleTakeSnapshot = async (sukukId: number) => {
-        // TODO: Implement snapshot functionality
-        console.log('Taking snapshot for sukuk:', sukukId)
+    const handleTakeSnapshot = async (sukukAddress: string) => {
+        if (isTakingSnapshot) return;
+
+        setIsTakingSnapshot(true);
+        setSnapshotError(null);
+
+        try {
+            console.log('Taking snapshot for sukuk:', sukukAddress)
+
+            const tx = await writeContractTakeSnapshot({
+                address: SMART_CONTRACT_MANAGER_ADDRESS,
+                abi: SukukManagerAbi,
+                functionName: "takeSnapshot",
+                args: [sukukAddress as `0x${string}`],
+            });
+
+            console.log('Taking snapshot tx hash:', tx)
+
+            return tx; // Return the transaction hash
+
+        } catch (error) {
+            console.error('Error taking snapshot:', error);
+            setSnapshotError(error instanceof Error ? error.message : 'Failed to take snapshot');
+            throw error; // Re-throw the error so calling code can handle it
+        } finally {
+            setIsTakingSnapshot(false);
+        }
     }
 
-    const handleDistributeYield = async (sukukId: number) => {
-        // TODO: Implement yield distribution
-        console.log('Distributing yield for sukuk:', sukukId)
+    const handleDistributeYield = (sukukAddress: string) => {
+        setSelectedSukukAddress(sukukAddress);
+        setDistributeAmount("");
+        setIsDistributeModalOpen(true);
+    }
+
+    const executeDistributeYield = async () => {
+        if (!selectedSukukAddress || !distributeAmount) {
+            console.error('Missing sukuk address or distribute amount');
+            return;
+        }
+
+        setIsDistributing(true);
+
+        try {
+            console.log('Distributing yield for sukuk:', selectedSukukAddress);
+
+            // Get the latest snapshot ID from the API
+            const { data: snapshotsData } = await apiClient.getSukukSnapshots(selectedSukukAddress);
+            const latestSnapshot = snapshotsData.snapshots[0]; // Get the most recent snapshot
+
+            if (!latestSnapshot) {
+                console.error('No snapshots found for this sukuk');
+                return;
+            }
+
+            const snapshotId = BigInt(latestSnapshot.id);
+            const amount = BigInt(distributeAmount);
+            console.log('Using snapshot ID:', snapshotId.toString());
+            console.log('Distribute amount:', amount.toString());
+
+            const tx = await writeContractTakeSnapshot({
+                address: SMART_CONTRACT_MANAGER_ADDRESS,
+                abi: SukukManagerAbi,
+                functionName: "distributeYieldFromSnapshot",
+                args: [selectedSukukAddress as `0x${string}`, snapshotId, amount * 100n, SMART_CONTRACT_IDRX_ADDRESS],
+            });
+
+            console.log('Distribute yield transaction hash:', tx);
+
+            // Close modal and reset state
+            setIsDistributeModalOpen(false);
+            setDistributeAmount("");
+            setSelectedSukukAddress(null);
+        } catch (error) {
+            console.error('Error distributing yield:', error);
+        } finally {
+            setIsDistributing(false);
+        }
     }
 
     return (
@@ -104,6 +189,29 @@ export function SukukDataTable() {
                     </div>
                 </div>
 
+                {/* Error Display */}
+                {snapshotError && (
+                    <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <div className="flex items-center">
+                            <div className="flex-shrink-0">
+                                <span className="text-red-500">⚠️</span>
+                            </div>
+                            <div className="ml-3">
+                                <h3 className="text-sm font-medium text-red-800">Snapshot Error</h3>
+                                <div className="mt-1 text-sm text-red-700">{snapshotError}</div>
+                            </div>
+                            <div className="ml-auto pl-3">
+                                <button
+                                    onClick={() => setSnapshotError(null)}
+                                    className="text-red-400 hover:text-red-600"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Table */}
                 <div className="overflow-x-auto">
                     <table className="w-full">
@@ -133,7 +241,7 @@ export function SukukDataTable() {
                                 <tr>
                                     <td colSpan={8} className="py-8 text-center">
                                         <div className="text-red-600">Error: {error}</div>
-                                        <button 
+                                        <button
                                             onClick={refetch}
                                             className="mt-2 px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary/90"
                                         >
@@ -181,17 +289,28 @@ export function SukukDataTable() {
                                         </td>
                                         <td className="py-4 px-4">
                                             <div className="flex items-center space-x-2">
-                                                <button 
-                                                    onClick={() => handleTakeSnapshot(sukuk.id)}
-                                                    className="px-3 py-1.5 text-xs font-medium bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+                                                <button
+                                                    onClick={async () => {
+                                                        try {
+                                                            const result = await handleTakeSnapshot(sukuk.contract_address);
+                                                            if (result) {
+                                                                console.log('Snapshot completed successfully:', result);
+                                                            }
+                                                        } catch (error) {
+                                                            console.error('Snapshot failed:', error);
+                                                        }
+                                                    }}
+                                                    disabled={isTakingSnapshot || statusTakeSnapshot === "pending"}
+                                                    className="px-3 py-1.5 text-xs font-medium bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
                                                 >
-                                                    Take Snapshot
+                                                    {isTakingSnapshot || statusTakeSnapshot === "pending" ? "Processing..." : "Take Snapshot"}
                                                 </button>
-                                                <button 
-                                                    onClick={() => handleDistributeYield(sukuk.id)}
-                                                    className="px-3 py-1.5 text-xs font-medium bg-green-50 text-green-600 hover:bg-green-100 rounded-lg transition-colors"
+                                                <button
+                                                    onClick={() => handleDistributeYield(sukuk.contract_address)}
+                                                    disabled={isDistributing}
+                                                    className="px-3 py-1.5 text-xs font-medium bg-green-50 text-green-600 hover:bg-green-100 disabled:bg-muted/20 disabled:text-muted-foreground disabled:cursor-not-allowed rounded-lg transition-colors"
                                                 >
-                                                    Distribute Yield
+                                                    {isDistributing ? "Memproses..." : "Distribute Yield"}
                                                 </button>
                                             </div>
                                         </td>
@@ -219,9 +338,62 @@ export function SukukDataTable() {
                                 <X className="w-5 h-5 text-muted-foreground" />
                             </button>
                         </div>
-                        
+
                         <div className="overflow-y-auto max-h-[calc(90vh-80px)]">
                             <AddSukukForm onClose={() => setIsAddModalOpen(false)} />
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Distribute Yield Modal */}
+            {isDistributeModalOpen && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-background rounded-xl border border-border max-w-md w-full">
+                        <div className="flex items-center justify-between p-6 border-b border-border">
+                            <div>
+                                <h2 className="text-xl font-bold text-foreground">Distribute Yield</h2>
+                                <p className="text-sm text-muted-foreground">Masukkan total keuntungan yang akan dibagikan</p>
+                            </div>
+                            <button
+                                onClick={() => setIsDistributeModalOpen(false)}
+                                className="p-2 hover:bg-accent rounded-lg transition-colors"
+                            >
+                                <X className="w-5 h-5 text-muted-foreground" />
+                            </button>
+                        </div>
+
+                        <div className="p-6">
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-foreground mb-2">
+                                        Total Keuntungan yang Dibagikan
+                                    </label>
+                                    <Input
+                                        type="number"
+                                        placeholder="Masukkan jumlah keuntungan"
+                                        value={distributeAmount}
+                                        onChange={(e) => setDistributeAmount(e.target.value)}
+                                        className="w-full"
+                                    />
+                                </div>
+
+                                <div className="flex space-x-3 pt-4">
+                                    <button
+                                        onClick={() => setIsDistributeModalOpen(false)}
+                                        className="flex-1 px-4 py-2 text-sm font-medium text-muted-foreground bg-muted hover:bg-muted/80 rounded-lg transition-colors"
+                                    >
+                                        Batal
+                                    </button>
+                                    <button
+                                        onClick={executeDistributeYield}
+                                        disabled={!distributeAmount || isDistributing}
+                                        className="flex-1 px-4 py-2 text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed rounded-lg transition-colors"
+                                    >
+                                        {isDistributing ? "Memproses..." : "Distribute"}
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
