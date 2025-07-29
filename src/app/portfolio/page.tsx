@@ -2,17 +2,26 @@
 import { useState } from "react"
 import { GhostButton } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search, TrendingUp, PieChart, ChevronDown, Gift } from "lucide-react"
+import { Search, TrendingUp, PieChart, Gift } from "lucide-react"
 import { useOwnedSukuk } from "@/hooks/useApi"
-import { formatCurrency, formatDate } from "@/utils/api"
+import { formatCurrency } from "@/utils/api"
 import { calculatePortfolioSummary, formatSukukHolding } from "@/utils/api"
+import { useWriteContract, useAccount } from "wagmi";
+import { OwnedSukuk } from "@/libs/api";
+import { SMART_CONTRACT_MANAGER_ADDRESS } from "@/libs/contracts/contractAddress";
+import { SukukManagerAbi } from "@/libs/contracts/abi/SukukManagerAbi";
+import { usePrivy } from "@privy-io/react-auth";
 
 // Test wallet address - in a real app, this would come from wallet connection
 const TEST_WALLET_ADDRESS = "0xf57093Ea18E5CfF6E7bB3bb770Ae9C492277A5a9"
 
 export default function PortfolioPage() {
     const [searchTerm, setSearchTerm] = useState("")
-    
+    const [isConfirming, setConfirming] = useState(false);
+
+    const { address, isConnected } = useAccount();
+    const { login } = usePrivy();
+
     const { data: ownedSukukData, loading, error, refetch } = useOwnedSukuk(TEST_WALLET_ADDRESS)
 
     // Calculate portfolio summary from owned sukuk data
@@ -23,7 +32,7 @@ export default function PortfolioPage() {
     }
 
     // Filter sukuk holdings based on search term
-    const filteredHoldings = ownedSukukData?.sukuk?.filter((sukuk) => 
+    const filteredHoldings = ownedSukukData?.sukuk?.filter((sukuk) =>
         sukuk.sukuk_code.toLowerCase().includes(searchTerm.toLowerCase()) ||
         sukuk.sukuk_title.toLowerCase().includes(searchTerm.toLowerCase())
     ) || []
@@ -45,9 +54,67 @@ export default function PortfolioPage() {
         }
     }
 
-    const handleClaim = (sukukId: number) => {
-        // TODO: Implement claim functionality
-        console.log('Claiming rewards for sukuk:', sukukId);
+    const {
+        writeContractAsync: writeContractClaim,
+        status: statusClaim,
+    } = useWriteContract();
+
+    const claim = async (sukuk: OwnedSukuk) => {
+        if (isConfirming || !address) return;
+        setConfirming(true);
+
+        try {
+            // Loop through all available distributions
+            for (const distribution of sukuk.available_distributions) {
+                try {
+                    console.log("Checking distribution:", distribution);
+                    console.log("Sukuk contract address:", sukuk.contract_address);
+                    console.log("Distribution ID:", distribution.distribution_id);
+                    console.log("Is claimable:", distribution.claimable);
+
+                    // Only proceed if the distribution is claimable
+                    if (!distribution.claimable) {
+                        console.log(`Distribution ${distribution.distribution_id} is not claimable, skipping...`);
+                        continue;
+                    }
+
+                    const tx = await writeContractClaim({
+                        address: SMART_CONTRACT_MANAGER_ADDRESS,
+                        abi: SukukManagerAbi,
+                        functionName: "claimYield",
+                        args: [sukuk.contract_address as `0x${string}`, BigInt(distribution.distribution_id)],
+                    });
+
+                    console.log("TX HASH for distribution", distribution.distribution_id, ":", tx);
+                } catch (distributionError) {
+                    console.error(`Failed to claim distribution ${distribution.distribution_id}:`, distributionError);
+                    // Continue with next distribution instead of stopping
+                }
+            }
+
+        } catch (e) {
+            console.error("ERROR WHILE CLAIMING", e);
+            // Log more details about the error
+            if (e instanceof Error) {
+                console.error("Error message:", e.message);
+                console.error("Error stack:", e.stack);
+            }
+        } finally {
+            setConfirming(false);
+        }
+    };
+
+    const handleClaim = async (sukuk: OwnedSukuk) => {
+        if (!isConnected || !address) {
+            login();
+            return;
+        }
+
+        try {
+            await claim(sukuk);
+        } catch (e) {
+            console.error("Error in handleInvest:", e);
+        }
     }
 
     return (
@@ -129,8 +196,8 @@ export default function PortfolioPage() {
                                         <PieChart className="w-5 h-5 md:w-6 md:h-6 text-muted-foreground" />
                                     </div>
                                     <p className="text-muted-foreground font-medium text-sm md:text-base">
-                                        {loading ? "Memuat data..." : 
-                                         filteredHoldings.length > 0 ? "Data distribusi akan segera tersedia" : "Belum Ada Data"}
+                                        {loading ? "Memuat data..." :
+                                            filteredHoldings.length > 0 ? "Data distribusi akan segera tersedia" : "Belum Ada Data"}
                                     </p>
                                 </div>
                             </div>
@@ -197,7 +264,7 @@ export default function PortfolioPage() {
                                                     </div>
                                                     <p className="font-medium text-red-600">Gagal memuat data</p>
                                                     <p className="text-sm mt-1">{error}</p>
-                                                    <button 
+                                                    <button
                                                         onClick={refetch}
                                                         className="mt-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm hover:bg-primary/90"
                                                     >
@@ -217,7 +284,7 @@ export default function PortfolioPage() {
                                                         {searchTerm ? "Tidak ada hasil pencarian" : "Belum ada kepemilikan sukuk"}
                                                     </p>
                                                     <p className="text-sm mt-1">
-                                                        {searchTerm 
+                                                        {searchTerm
                                                             ? `Tidak ditemukan sukuk dengan kata kunci "${searchTerm}"`
                                                             : "Mulai berinvestasi di pool sukuk untuk melihat kepemilikan Anda di sini"
                                                         }
@@ -229,7 +296,7 @@ export default function PortfolioPage() {
                                         filteredHoldings.map((sukuk) => {
                                             const holding = formatSukukHolding(sukuk);
                                             const statusInfo = getStatusInfo(sukuk.status);
-                                            
+
                                             return (
                                                 <tr key={sukuk.id} className="border-b border-border hover:bg-accent/50">
                                                     <td className="py-4 px-6">
@@ -253,13 +320,20 @@ export default function PortfolioPage() {
                                                         </span>
                                                     </td>
                                                     <td className="py-4 px-6">
-                                                        <button
-                                                            onClick={() => handleClaim(sukuk.id)}
-                                                            className="inline-flex items-center space-x-1 px-3 py-1 bg-primary/10 hover:bg-primary/20 text-primary text-sm rounded-lg transition-colors"
-                                                        >
-                                                            <Gift className="w-4 h-4" />
-                                                            <span>Claim</span>
-                                                        </button>
+                                                        {sukuk.available_distributions && sukuk.available_distributions.some(dist => dist.claimable) ? (
+                                                            <button
+                                                                onClick={() => handleClaim(sukuk)}
+                                                                disabled={isConfirming || statusClaim === "pending"}
+                                                                className="inline-flex items-center space-x-1 px-3 py-1 bg-primary/10 hover:bg-primary/20 text-primary text-sm rounded-lg transition-colors disabled:bg-muted/20 disabled:text-muted-foreground disabled:cursor-not-allowed"
+                                                            >
+                                                                <Gift className="w-4 h-4" />
+                                                                <span>{isConfirming || statusClaim === "pending" ? "Memproses..." : "Claim"}</span>
+                                                            </button>
+                                                        ) : (
+                                                            <span className="inline-flex items-center space-x-1 px-3 py-1 bg-muted/10 text-muted-foreground text-sm rounded-lg">
+                                                                <span>Belum ada kupon untuk diklaim</span>
+                                                            </span>
+                                                        )}
                                                     </td>
                                                 </tr>
                                             )
@@ -286,7 +360,7 @@ export default function PortfolioPage() {
                                         </div>
                                         <p className="font-medium text-red-600 text-sm">Gagal memuat data</p>
                                         <p className="text-xs mt-1">{error}</p>
-                                        <button 
+                                        <button
                                             onClick={refetch}
                                             className="mt-2 px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-sm hover:bg-primary/90"
                                         >
@@ -304,7 +378,7 @@ export default function PortfolioPage() {
                                             {searchTerm ? "Tidak ada hasil pencarian" : "Belum ada kepemilikan sukuk"}
                                         </p>
                                         <p className="text-xs mt-1">
-                                            {searchTerm 
+                                            {searchTerm
                                                 ? `Tidak ditemukan sukuk dengan kata kunci "${searchTerm}"`
                                                 : "Mulai berinvestasi di pool sukuk untuk melihat kepemilikan Anda di sini"
                                             }
@@ -316,7 +390,7 @@ export default function PortfolioPage() {
                                     {filteredHoldings.map((sukuk) => {
                                         const holding = formatSukukHolding(sukuk);
                                         const statusInfo = getStatusInfo(sukuk.status);
-                                        
+
                                         return (
                                             <div key={sukuk.id} className="p-4">
                                                 <div className="flex items-start justify-between mb-3">
@@ -328,7 +402,7 @@ export default function PortfolioPage() {
                                                         {sukuk.status}
                                                     </span>
                                                 </div>
-                                                
+
                                                 <div className="grid grid-cols-2 gap-3 text-sm mb-3">
                                                     <div>
                                                         <div className="text-muted-foreground">Imbal Hasil</div>
@@ -344,13 +418,20 @@ export default function PortfolioPage() {
                                                     </div>
                                                 </div>
 
-                                                <button
-                                                    onClick={() => handleClaim(sukuk.id)}
-                                                    className="w-full flex items-center justify-center space-x-1 px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary text-sm rounded-lg transition-colors"
-                                                >
-                                                    <Gift className="w-4 h-4" />
-                                                    <span>Claim Rewards</span>
-                                                </button>
+                                                {sukuk.available_distributions && sukuk.available_distributions.some(dist => dist.claimable) ? (
+                                                    <button
+                                                        onClick={() => handleClaim(sukuk)}
+                                                        disabled={isConfirming || statusClaim === "pending"}
+                                                        className="w-full flex items-center justify-center space-x-1 px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary text-sm rounded-lg transition-colors disabled:bg-muted/20 disabled:text-muted-foreground disabled:cursor-not-allowed"
+                                                    >
+                                                        <Gift className="w-4 h-4" />
+                                                        <span>{isConfirming || statusClaim === "pending" ? "Memproses..." : "Claim Rewards"}</span>
+                                                    </button>
+                                                ) : (
+                                                    <div className="w-full flex items-center justify-center space-x-1 px-3 py-2 bg-muted/10 text-muted-foreground text-sm rounded-lg">
+                                                        <span>Belum ada kupon untuk diklaim</span>
+                                                    </div>
+                                                )}
                                             </div>
                                         )
                                     })}

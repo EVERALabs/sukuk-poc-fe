@@ -167,11 +167,11 @@ export function SukukInvestmentPanel({ contractAddress }: SukukInvestmentPanelPr
 
         try {
             if (activeTab === "beli") {
-                if (dataAllowanceIDRX || 0n >= BigInt(investAmount)) {
-                    await buy(BigInt(investAmount) * 100n);
-                } else {
-                    await approveAllowanceBuy();
-                }
+                // if (dataAllowanceIDRX || 0n >= BigInt(investAmount)) {
+                await buy(BigInt(investAmount) * 100n);
+                // } else {
+                //     await approveAllowanceBuy();
+                // }
             } else {
                 // TODO: Implement sell functionality
                 console.log("Sell functionality not implemented yet");
