@@ -186,6 +186,11 @@ export function useSukukDistribution() {
   return useApi(() => apiClient.getSukukDistribution(), []);
 }
 
+// Redemption hooks
+export function useRedemptions() {
+  return useApi(() => apiClient.getRedemptions(), []);
+}
+
 // Cache management
 export function useCache() {
   const clearCache = useCallback(() => {
