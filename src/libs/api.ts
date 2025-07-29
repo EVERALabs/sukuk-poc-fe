@@ -32,6 +32,8 @@ export interface TransactionActivity {
   tx_hash: string;
   timestamp: string; // ISO string
   sukuk_address: string;
+  sukuk_code: string;
+  sukuk_title: string;
 }
 
 export interface TransactionHistoryResponse {

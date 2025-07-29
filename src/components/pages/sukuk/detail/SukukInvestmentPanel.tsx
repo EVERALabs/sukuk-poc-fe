@@ -9,6 +9,7 @@ import { erc20Abi } from "viem"
 import { SMART_CONTRACT_IDRX_ADDRESS, SMART_CONTRACT_MANAGER_ADDRESS } from "@/libs/contracts/contractAddress"
 import { SukukManagerAbi } from "@/libs/contracts/abi/SukukManagerAbi"
 import { usePrivy } from "@privy-io/react-auth"
+import { IDRXAbi } from "@/libs/contracts/abi/IDRXAbi"
 
 interface SukukInvestmentPanelProps {
     contractAddress: string
@@ -33,14 +34,21 @@ export function SukukInvestmentPanel({ contractAddress }: SukukInvestmentPanelPr
         status: statusBuy,
     } = useWriteContract();
 
+    // const {
+    //     writeContractAsync: writeContractSell,
+    //     status: statusSell,
+    // } = useWriteContract();
+
     const { data: dataAllowanceIDRX, refetch: refetchAllowanceIDRX } =
         useReadContract({
-            abi: erc20Abi,
+            abi: IDRXAbi,
             address: SMART_CONTRACT_IDRX_ADDRESS,
             functionName: "allowance",
             args: [address || "0x0000000000000000000000000000000000000000" as `0x${string}`, SMART_CONTRACT_MANAGER_ADDRESS],
+            query: {
+                enabled: !!address && isConnected,
+            },
         });
-
     // Calculate button text based on state
     const getButtonText = () => {
         if (!isConnected) {
@@ -124,6 +132,28 @@ export function SukukInvestmentPanel({ contractAddress }: SukukInvestmentPanelPr
             setConfirming(false);
         }
     };
+
+    // const sell = async (amount: bigint) => {
+    //     if (isConfirming || !address) return;
+    //     setConfirming(true);
+
+    //     try {
+    //         const tx = await writeContractSell({
+    //             address: SMART_CONTRACT_MANAGER_ADDRESS,
+    //             abi: SukukManagerAbi,
+    //             functionName: "claimYield",
+    //             args: [contractAddress as `0x${string}`, amount, SMART_CONTRACT_IDRX_ADDRESS],
+    //         });
+
+    //         console.log("TX HASH:", tx);
+    //         setInvestAmount("");
+    //     } catch (e) {
+    //         console.error("ERROR WHILE BUYING", e);
+    //     } finally {
+    //         setApproving(false);
+    //         setConfirming(false);
+    //     }
+    // };
 
     const handleInvest = async () => {
         if (!isConnected || !address) {

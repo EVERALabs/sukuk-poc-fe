@@ -1,10 +1,8 @@
 "use client";
 
 import { useState } from "react"
-import { GhostButton, OutlineButton } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@radix-ui/react-select"
-import { Search, Filter, Eye, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ArrowUpDown, ExternalLink } from "lucide-react"
+import { Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ArrowUpDown, ExternalLink } from "lucide-react"
 import { useTransactionHistory } from "@/hooks/useApi"
 import { TransactionActivity } from "@/libs/api"
 
@@ -25,12 +23,12 @@ export default function HistoryPage() {
 
     // Helper function to format amount from wei to readable format
     const formatAmount = (amountWei: string) => {
-        const amount = BigInt(amountWei) / BigInt(10**18) // Convert from wei to ether
+        const amount = Number(amountWei) // Convert string to number directly
         return new Intl.NumberFormat('id-ID', {
             style: 'currency',
             currency: 'IDR',
             minimumFractionDigits: 0
-        }).format(Number(amount))
+        }).format(amount)
     }
 
     // Helper function to format date
@@ -59,7 +57,7 @@ export default function HistoryPage() {
     }
 
     return (
-        <div className="min-h-[calc(100vh-80px)] bg-background px-6 py-6">
+        <div className="min-h-[calc(100vh-80px)] bg-background px-4 md:px-6 py-4 md:py-6">
             <div className="p-6 mt-12">
                 {/* Header */}
                 <h1 className="text-2xl font-bold text-foreground mb-6">Riwayat Transaksi</h1>
@@ -78,7 +76,7 @@ export default function HistoryPage() {
                             />
                         </div>
 
-                        <OutlineButton
+                        {/* <OutlineButton
                             className="border-border text-foreground bg-transparent hover:bg-accent"
                         >
                             <Filter className="w-4 h-4 mr-2" />
@@ -91,16 +89,16 @@ export default function HistoryPage() {
                         >
                             <Filter className="w-4 h-4 mr-2" />
                             Jenis Pool
-                        </OutlineButton>
+                        </OutlineButton> */}
                     </div>
 
-                    <OutlineButton
+                    {/* <OutlineButton
 
                         className="border-border text-foreground bg-transparent hover:bg-accent"
                     >
                         <Eye className="w-4 h-4 mr-2" />
                         Lihat
-                    </OutlineButton>
+                    </OutlineButton> */}
                 </div>
 
                 {/* Table */}
@@ -207,7 +205,7 @@ export default function HistoryPage() {
                                             <td className="py-4 px-6 text-foreground text-sm">
                                                 <div className="flex items-center space-x-2">
                                                     <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                                                        Sukuk Pool
+                                                        {transaction.sukuk_code}
                                                     </span>
                                                     <span className="text-muted-foreground font-mono text-xs">
                                                         {transaction.sukuk_address.slice(0, 6)}...{transaction.sukuk_address.slice(-4)}
@@ -248,47 +246,50 @@ export default function HistoryPage() {
                     </div>
 
                     {/* Pagination */}
-                    <div className="flex items-center justify-between px-6 py-4 border-t border-border">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-4 md:px-6 py-4 border-t border-border">
                         <div className="flex items-center space-x-2">
-                            <span className="text-muted-foreground text-sm">Baris per halaman:</span>
-                            <Select value={limit.toString()} onValueChange={(value) => setLimit(Number(value))}>
-                                <SelectTrigger className="w-16 h-8 bg-background border-border text-foreground">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent className="bg-background border-border">
-                                    <SelectItem value="5" className="text-foreground hover:bg-accent">
-                                        5
-                                    </SelectItem>
-                                    <SelectItem value="10" className="text-foreground hover:bg-accent">
-                                        10
-                                    </SelectItem>
-                                    <SelectItem value="25" className="text-foreground hover:bg-accent">
-                                        25
-                                    </SelectItem>
-                                    <SelectItem value="50" className="text-foreground hover:bg-accent">
-                                        50
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
+                            <span className="text-muted-foreground text-sm whitespace-nowrap">Baris per halaman:</span>
+                            <select 
+                                value={limit} 
+                                onChange={(e) => setLimit(Number(e.target.value))}
+                                className="w-16 h-8 bg-background border border-border rounded-md text-sm text-foreground px-2"
+                            >
+                                <option value={5}>5</option>
+                                <option value={10}>10</option>
+                                <option value={25}>25</option>
+                                <option value={50}>50</option>
+                            </select>
                         </div>
 
-                        <div className="flex items-center space-x-4">
-                            <span className="text-muted-foreground text-sm">
+                        <div className="flex flex-col md:flex-row items-center gap-4">
+                            <span className="text-muted-foreground text-sm whitespace-nowrap">
                                 Menampilkan {filteredTransactions.length} dari {transactionHistory?.total_count || 0} transaksi
                             </span>
                             <div className="flex items-center space-x-1">
-                                <GhostButton disabled className="w-8 h-8 p-0 text-muted-foreground">
+                                <button 
+                                    className="w-8 h-8 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent disabled:opacity-50 disabled:hover:bg-transparent"
+                                    disabled
+                                >
                                     <ChevronsLeft className="w-4 h-4" />
-                                </GhostButton>
-                                <GhostButton disabled className="w-8 h-8 p-0 text-muted-foreground">
+                                </button>
+                                <button 
+                                    className="w-8 h-8 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent disabled:opacity-50 disabled:hover:bg-transparent"
+                                    disabled
+                                >
                                     <ChevronLeft className="w-4 h-4" />
-                                </GhostButton>
-                                <GhostButton disabled className="w-8 h-8 p-0 text-muted-foreground">
+                                </button>
+                                <button 
+                                    className="w-8 h-8 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent disabled:opacity-50 disabled:hover:bg-transparent"
+                                    disabled
+                                >
                                     <ChevronRight className="w-4 h-4" />
-                                </GhostButton>
-                                <GhostButton disabled className="w-8 h-8 p-0 text-muted-foreground">
+                                </button>
+                                <button 
+                                    className="w-8 h-8 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent disabled:opacity-50 disabled:hover:bg-transparent"
+                                    disabled
+                                >
                                     <ChevronsRight className="w-4 h-4" />
-                                </GhostButton>
+                                </button>
                             </div>
                         </div>
                     </div>
