@@ -25,12 +25,12 @@ export default function HistoryPage() {
 
     // Helper function to format amount from wei to readable format
     const formatAmount = (amountWei: string) => {
-        const amount = BigInt(amountWei) / BigInt(10**18) // Convert from wei to ether
+        const amount = Number(amountWei) // Convert string to number directly
         return new Intl.NumberFormat('id-ID', {
             style: 'currency',
             currency: 'IDR',
             minimumFractionDigits: 0
-        }).format(Number(amount))
+        }).format(amount)
     }
 
     // Helper function to format date
@@ -207,7 +207,7 @@ export default function HistoryPage() {
                                             <td className="py-4 px-6 text-foreground text-sm">
                                                 <div className="flex items-center space-x-2">
                                                     <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                                                        Sukuk Pool
+                                                        {transaction.sukuk_code}
                                                     </span>
                                                     <span className="text-muted-foreground font-mono text-xs">
                                                         {transaction.sukuk_address.slice(0, 6)}...{transaction.sukuk_address.slice(-4)}
