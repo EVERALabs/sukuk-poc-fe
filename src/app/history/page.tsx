@@ -12,11 +12,11 @@ const TEST_WALLET_ADDRESS = "0xf57093Ea18E5CfF6E7bB3bb770Ae9C492277A5a9"
 export default function HistoryPage() {
     const [limit, setLimit] = useState(10)
     const [searchTerm, setSearchTerm] = useState("")
-    
+
     const { data: transactionHistory, loading, error, refetch } = useTransactionHistory(TEST_WALLET_ADDRESS, limit)
 
     // Filter transactions based on search term
-    const filteredTransactions = transactionHistory?.activities?.filter((tx: TransactionActivity) => 
+    const filteredTransactions = transactionHistory?.activities?.filter((tx: TransactionActivity) =>
         tx.tx_hash.toLowerCase().includes(searchTerm.toLowerCase()) ||
         tx.sukuk_address.toLowerCase().includes(searchTerm.toLowerCase())
     ) || []
@@ -165,7 +165,7 @@ export default function HistoryPage() {
                                                 </div>
                                                 <p className="font-medium text-red-600">Gagal memuat data</p>
                                                 <p className="text-sm mt-1">{error}</p>
-                                                <button 
+                                                <button
                                                     onClick={refetch}
                                                     className="mt-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm hover:bg-primary/90"
                                                 >
@@ -185,7 +185,7 @@ export default function HistoryPage() {
                                                     {searchTerm ? "Tidak ada hasil pencarian" : "Tidak ada transaksi"}
                                                 </p>
                                                 <p className="text-sm mt-1">
-                                                    {searchTerm 
+                                                    {searchTerm
                                                         ? `Tidak ditemukan transaksi dengan kata kunci "${searchTerm}"`
                                                         : "Riwayat transaksi sukuk Anda akan muncul di sini setelah Anda mulai berinvestasi"
                                                     }
@@ -200,7 +200,7 @@ export default function HistoryPage() {
                                                 #{index + 1}
                                             </td>
                                             <td className="py-4 px-6 text-foreground font-medium">
-                                                {formatAmount(transaction.amount)}
+                                                {formatAmount((Number(transaction.amount) / 100).toString())}
                                             </td>
                                             <td className="py-4 px-6 text-foreground text-sm">
                                                 <div className="flex items-center space-x-2">
@@ -226,8 +226,8 @@ export default function HistoryPage() {
                                                 </span>
                                             </td>
                                             <td className="py-4 px-6">
-                                                <a 
-                                                    href={`https://etherscan.io/tx/${transaction.tx_hash}`}
+                                                <a
+                                                    href={`https://base-sepolia.blockscout.com/tx/${transaction.tx_hash}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="flex items-center space-x-2 text-primary hover:text-primary/80 text-sm"
@@ -249,8 +249,8 @@ export default function HistoryPage() {
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-4 md:px-6 py-4 border-t border-border">
                         <div className="flex items-center space-x-2">
                             <span className="text-muted-foreground text-sm whitespace-nowrap">Baris per halaman:</span>
-                            <select 
-                                value={limit} 
+                            <select
+                                value={limit}
                                 onChange={(e) => setLimit(Number(e.target.value))}
                                 className="w-16 h-8 bg-background border border-border rounded-md text-sm text-foreground px-2"
                             >
@@ -266,25 +266,25 @@ export default function HistoryPage() {
                                 Menampilkan {filteredTransactions.length} dari {transactionHistory?.total_count || 0} transaksi
                             </span>
                             <div className="flex items-center space-x-1">
-                                <button 
+                                <button
                                     className="w-8 h-8 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent disabled:opacity-50 disabled:hover:bg-transparent"
                                     disabled
                                 >
                                     <ChevronsLeft className="w-4 h-4" />
                                 </button>
-                                <button 
+                                <button
                                     className="w-8 h-8 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent disabled:opacity-50 disabled:hover:bg-transparent"
                                     disabled
                                 >
                                     <ChevronLeft className="w-4 h-4" />
                                 </button>
-                                <button 
+                                <button
                                     className="w-8 h-8 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent disabled:opacity-50 disabled:hover:bg-transparent"
                                     disabled
                                 >
                                     <ChevronRight className="w-4 h-4" />
                                 </button>
-                                <button 
+                                <button
                                     className="w-8 h-8 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent disabled:opacity-50 disabled:hover:bg-transparent"
                                     disabled
                                 >
