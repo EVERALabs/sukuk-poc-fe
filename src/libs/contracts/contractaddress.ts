@@ -1,0 +1,20 @@
+export const SMART_CONTRACT_FACTORY_ADDRESS = process.env
+  .SMART_CONTRACT_FACTORY_ADDRESS as `0x${string}`;
+
+export const SMART_CONTRACT_MANAGER_ADDRESS = process.env
+  .SMART_CONTRACT_MANAGER_ADDRESS as `0x${string}`;
+
+export const SMART_CONTRACT_VAULT_ADDRESS = process.env
+  .SMART_CONTRACT_VAULT_ADDRESS as `0x${string}`;
+
+export const SMART_CONTRACT_IDRX_ADDRESS = process.env
+  .SMART_CONTRACT_IDRX_ADDRESS as `0x${string}`;
+
+export const SMART_CONTRACT_GREEN_SUKUK_ADDRESS = process.env
+  .SMART_CONTRACT_GREEN_SUKUK_ADDRESS as `0x${string}`;
+
+export const SMART_CONTRACT_INFRASTRUCTURE_SUKUK_ADDRESS = process.env
+  .SMART_CONTRACT_INFRASTRUCTURE_SUKUK_ADDRESS as `0x${string}`;
+
+export const SMART_CONTRACT_EDUCATION_SUKUK_ADDRESS = process.env
+  .SMART_CONTRACT_EDUCATION_SUKUK_ADDRESS as `0x${string}`;
