@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Search, CheckCircle, XCircle } from "lucide-react"
+import { Search, CheckCircle, XCircle, CheckCircle2, ExternalLink } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { useRedemptions } from "@/hooks/useApi"
 import { formatCurrency } from "@/utils/api"
@@ -14,6 +14,10 @@ export function RedeemRequestsTable() {
     const [searchTerm, setSearchTerm] = useState("")
     const { data: redemptionData, loading, error, refetch } = useRedemptions()
     const [processingIds, setProcessingIds] = useState<Set<string>>(new Set())
+    const [showTxDialog, setShowTxDialog] = useState(false);
+    const [currentTxHash, setCurrentTxHash] = useState<string | null>(null);
+    const [txStep, setTxStep] = useState<1 | 2>(1);
+    const [isSuccess, setIsSuccess] = useState(false);
 
     const {
         writeContractAsync: writeContractApprove,
@@ -51,12 +55,20 @@ export function RedeemRequestsTable() {
     const handleApprove = async (request: RedemptionRequest) => {
         try {
             setProcessingIds(prev => new Set([...prev, request.request_id]))
+            setShowTxDialog(true);
+            setTxStep(1);
+            setIsSuccess(false);
+
             const tx = await writeContractApprove({
                 address: SMART_CONTRACT_MANAGER_ADDRESS,
                 abi: SukukManagerAbi,
                 functionName: "approveRedemption",
                 args: [request.sukuk_address as `0x${string}`, request.user as `0x${string}`],
             });
+
+            setCurrentTxHash(tx);
+            setTxStep(2);
+            setIsSuccess(true);
 
             await new Promise(resolve => setTimeout(resolve, 1000))
             console.log('Approved request:', request.request_id, tx)
@@ -253,6 +265,84 @@ export function RedeemRequestsTable() {
                     </tbody>
                 </table>
             </div>
+
+            {/* Transaction Confirmation Dialog */}
+            {showTxDialog && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-background rounded-xl border border-border max-w-md w-full">
+                        <div className="flex items-center justify-between p-6 border-b border-border">
+                            <div>
+                                <h2 className="text-xl font-bold text-foreground">
+                                    {isSuccess ? "Transaction Successful" : "Confirm your transaction"}
+                                </h2>
+                                <p className="text-sm text-muted-foreground">
+                                    {isSuccess 
+                                        ? "Your transaction has been confirmed and processed successfully."
+                                        : "Review and confirm your token details before proceeding."
+                                    }
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    if (!processingIds.size) {
+                                        setShowTxDialog(false);
+                                        setCurrentTxHash(null);
+                                        setTxStep(1);
+                                        setIsSuccess(false);
+                                    }
+                                }}
+                                className="p-2 hover:bg-accent rounded-lg transition-colors"
+                                disabled={processingIds.size > 0}
+                            >
+                                <XCircle className="w-5 h-5 text-muted-foreground" />
+                            </button>
+                        </div>
+
+                        <div className="p-6 space-y-4">
+                            <div className="space-y-4">
+                                <div className={`flex items-center space-x-3 ${txStep === 1 ? 'text-primary' : isSuccess ? 'text-green-600' : 'text-muted-foreground'}`}>
+                                    <CheckCircle2 className="w-5 h-5" />
+                                    <span>Confirm transaction on your wallet</span>
+                                </div>
+                                <div className={`flex items-center space-x-3 ${txStep === 2 ? 'text-primary' : isSuccess ? 'text-green-600' : 'text-muted-foreground'}`}>
+                                    <CheckCircle2 className="w-5 h-5" />
+                                    <span>Send to your wallet</span>
+                                </div>
+                            </div>
+
+                            {currentTxHash && (
+                                <div className={`mt-4 p-4 ${isSuccess ? 'bg-green-50 border border-green-200' : 'bg-muted/20'} rounded-lg`}>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <p className="text-sm text-muted-foreground">Transaction Hash:</p>
+                                        <a 
+                                            href={`https://base-sepolia.blockscout.com/tx/${currentTxHash}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-primary hover:text-primary/80 flex items-center space-x-1"
+                                        >
+                                            <span className="text-xs">View on Explorer</span>
+                                            <ExternalLink className="w-3 h-3" />
+                                        </a>
+                                    </div>
+                                    <p className="text-sm font-mono break-all">{currentTxHash}</p>
+                                </div>
+                            )}
+
+                            {processingIds.size > 0 && (
+                                <div className="flex items-center justify-center py-4">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                                </div>
+                            )}
+
+                            {isSuccess && (
+                                <div className="flex items-center justify-center py-4 text-green-600">
+                                    <CheckCircle2 className="w-12 h-12" />
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 } 

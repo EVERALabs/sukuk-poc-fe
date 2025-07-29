@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Search, X } from "lucide-react"
+import { Search, X, CheckCircle2, ExternalLink } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { PrimaryButton } from "@/components/ui/button"
 import { AddSukukForm } from "./AddSukukForm"
@@ -54,11 +54,19 @@ export function SukukDataTable() {
         }
     }
 
+    const [showTxDialog, setShowTxDialog] = useState(false);
+    const [currentTxHash, setCurrentTxHash] = useState<string | null>(null);
+    const [txStep, setTxStep] = useState<1 | 2>(1);
+    const [isSuccess, setIsSuccess] = useState(false);
+
     const handleTakeSnapshot = async (sukukAddress: string) => {
         if (isTakingSnapshot) return;
 
         setIsTakingSnapshot(true);
         setSnapshotError(null);
+        setShowTxDialog(true);
+        setTxStep(1);
+        setIsSuccess(false);
 
         try {
             console.log('Taking snapshot for sukuk:', sukukAddress)
@@ -71,13 +79,15 @@ export function SukukDataTable() {
             });
 
             console.log('Taking snapshot tx hash:', tx)
-
-            return tx; // Return the transaction hash
+            setCurrentTxHash(tx);
+            setTxStep(2);
+            setIsSuccess(true);
+            return tx;
 
         } catch (error) {
             console.error('Error taking snapshot:', error);
             setSnapshotError(error instanceof Error ? error.message : 'Failed to take snapshot');
-            throw error; // Re-throw the error so calling code can handle it
+            throw error;
         } finally {
             setIsTakingSnapshot(false);
         }
@@ -96,13 +106,15 @@ export function SukukDataTable() {
         }
 
         setIsDistributing(true);
+        setShowTxDialog(true);
+        setTxStep(1);
+        setIsSuccess(false);
 
         try {
             console.log('Distributing yield for sukuk:', selectedSukukAddress);
 
-            // Get the latest snapshot ID from the API
             const { data: snapshotsData } = await apiClient.getSukukSnapshots(selectedSukukAddress);
-            const latestSnapshot = snapshotsData.snapshots[0]; // Get the most recent snapshot
+            const latestSnapshot = snapshotsData.snapshots[0];
 
             if (!latestSnapshot) {
                 console.error('No snapshots found for this sukuk');
@@ -122,8 +134,10 @@ export function SukukDataTable() {
             });
 
             console.log('Distribute yield transaction hash:', tx);
+            setCurrentTxHash(tx);
+            setTxStep(2);
+            setIsSuccess(true);
 
-            // Close modal and reset state
             setIsDistributeModalOpen(false);
             setDistributeAmount("");
             setSelectedSukukAddress(null);
@@ -394,6 +408,84 @@ export function SukukDataTable() {
                                     </button>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Transaction Confirmation Dialog */}
+            {showTxDialog && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-background rounded-xl border border-border max-w-md w-full">
+                        <div className="flex items-center justify-between p-6 border-b border-border">
+                            <div>
+                                <h2 className="text-xl font-bold text-foreground">
+                                    {isSuccess ? "Transaction Successful" : "Confirm your transaction"}
+                                </h2>
+                                <p className="text-sm text-muted-foreground">
+                                    {isSuccess 
+                                        ? "Your transaction has been confirmed and processed successfully."
+                                        : "Review and confirm your token details before proceeding."
+                                    }
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    if (!isTakingSnapshot && !isDistributing) {
+                                        setShowTxDialog(false);
+                                        setCurrentTxHash(null);
+                                        setTxStep(1);
+                                        setIsSuccess(false);
+                                    }
+                                }}
+                                className="p-2 hover:bg-accent rounded-lg transition-colors"
+                                disabled={isTakingSnapshot || isDistributing}
+                            >
+                                <X className="w-5 h-5 text-muted-foreground" />
+                            </button>
+                        </div>
+
+                        <div className="p-6 space-y-4">
+                            <div className="space-y-4">
+                                <div className={`flex items-center space-x-3 ${txStep === 1 ? 'text-primary' : isSuccess ? 'text-green-600' : 'text-muted-foreground'}`}>
+                                    <CheckCircle2 className="w-5 h-5" />
+                                    <span>Confirm transaction on your wallet</span>
+                                </div>
+                                <div className={`flex items-center space-x-3 ${txStep === 2 ? 'text-primary' : isSuccess ? 'text-green-600' : 'text-muted-foreground'}`}>
+                                    <CheckCircle2 className="w-5 h-5" />
+                                    <span>Send to your wallet</span>
+                                </div>
+                            </div>
+
+                            {currentTxHash && (
+                                <div className={`mt-4 p-4 ${isSuccess ? 'bg-green-50 border border-green-200' : 'bg-muted/20'} rounded-lg`}>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <p className="text-sm text-muted-foreground">Transaction Hash:</p>
+                                        <a 
+                                            href={`https://base-sepolia.blockscout.com/tx/${currentTxHash}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-primary hover:text-primary/80 flex items-center space-x-1"
+                                        >
+                                            <span className="text-xs">View on Explorer</span>
+                                            <ExternalLink className="w-3 h-3" />
+                                        </a>
+                                    </div>
+                                    <p className="text-sm font-mono break-all">{currentTxHash}</p>
+                                </div>
+                            )}
+
+                            {(isTakingSnapshot || isDistributing) && (
+                                <div className="flex items-center justify-center py-4">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                                </div>
+                            )}
+
+                            {isSuccess && (
+                                <div className="flex items-center justify-center py-4 text-green-600">
+                                    <CheckCircle2 className="w-12 h-12" />
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

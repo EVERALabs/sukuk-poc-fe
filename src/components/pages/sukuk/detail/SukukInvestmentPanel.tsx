@@ -9,6 +9,7 @@ import { erc20Abi } from "viem"
 import { SMART_CONTRACT_IDRX_ADDRESS, SMART_CONTRACT_MANAGER_ADDRESS } from "@/libs/contracts/contractAddress"
 import { SukukManagerAbi } from "@/libs/contracts/abi/SukukManagerAbi"
 import { usePrivy } from "@privy-io/react-auth"
+import { X, CheckCircle2, ExternalLink } from "lucide-react"
 
 interface SukukInvestmentPanelProps {
     contractAddress: string
@@ -22,6 +23,10 @@ export function SukukInvestmentPanel({ contractAddress }: SukukInvestmentPanelPr
     const [investAmount, setInvestAmount] = useState("")
     const [isApproving, setApproving] = useState(false);
     const [isConfirming, setConfirming] = useState(false);
+    const [showTxDialog, setShowTxDialog] = useState(false);
+    const [currentTxHash, setCurrentTxHash] = useState<string | null>(null);
+    const [txStep, setTxStep] = useState<1 | 2>(1);
+    const [isSuccess, setIsSuccess] = useState(false);
 
     const {
         writeContractAsync: writeContractAsyncAllowance,
@@ -137,10 +142,14 @@ export function SukukInvestmentPanel({ contractAddress }: SukukInvestmentPanelPr
     const buy = async (amount: bigint) => {
         if (isConfirming || !address) return;
         setConfirming(true);
-
-        await approveAllowanceBuy();
+        setShowTxDialog(true);
+        setTxStep(1);
+        setIsSuccess(false);
 
         try {
+            await approveAllowanceBuy();
+            setTxStep(2);
+
             const tx = await writeContractBuy({
                 address: SMART_CONTRACT_MANAGER_ADDRESS,
                 abi: SukukManagerAbi,
@@ -149,7 +158,9 @@ export function SukukInvestmentPanel({ contractAddress }: SukukInvestmentPanelPr
             });
 
             console.log("TX HASH:", tx);
+            setCurrentTxHash(tx);
             setInvestAmount("");
+            setIsSuccess(true);
         } catch (e) {
             console.error("ERROR WHILE BUYING", e);
         } finally {
@@ -161,8 +172,9 @@ export function SukukInvestmentPanel({ contractAddress }: SukukInvestmentPanelPr
     const sell = async (amount: bigint) => {
         if (isConfirming || !address) return;
         setConfirming(true);
-
-        // await approveAllowanceSell();
+        setShowTxDialog(true);
+        setTxStep(1);
+        setIsSuccess(false);
 
         try {
             const tx = await writeContractSell({
@@ -173,7 +185,10 @@ export function SukukInvestmentPanel({ contractAddress }: SukukInvestmentPanelPr
             });
 
             console.log("TX HASH:", tx);
+            setCurrentTxHash(tx);
             setInvestAmount("");
+            setTxStep(2);
+            setIsSuccess(true);
         } catch (e) {
             console.error("ERROR WHILE SELLING", e);
         } finally {
@@ -367,7 +382,83 @@ export function SukukInvestmentPanel({ contractAddress }: SukukInvestmentPanelPr
                 </div>
             </div>
 
+            {/* Transaction Confirmation Dialog */}
+            {showTxDialog && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-background rounded-xl border border-border max-w-md w-full">
+                        <div className="flex items-center justify-between p-6 border-b border-border">
+                            <div>
+                                <h2 className="text-xl font-bold text-foreground">
+                                    {isSuccess ? "Transaction Successful" : "Confirm your transaction"}
+                                </h2>
+                                <p className="text-sm text-muted-foreground">
+                                    {isSuccess 
+                                        ? "Your transaction has been confirmed and processed successfully."
+                                        : "Review and confirm your token details before proceeding."
+                                    }
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    if (!isConfirming) {
+                                        setShowTxDialog(false);
+                                        setCurrentTxHash(null);
+                                        setTxStep(1);
+                                        setIsSuccess(false);
+                                    }
+                                }}
+                                className="p-2 hover:bg-accent rounded-lg transition-colors"
+                                disabled={isConfirming}
+                            >
+                                <X className="w-5 h-5 text-muted-foreground" />
+                            </button>
+                        </div>
 
+                        <div className="p-6 space-y-4">
+                            <div className="space-y-4">
+                                <div className={`flex items-center space-x-3 ${txStep === 1 ? 'text-primary' : isSuccess ? 'text-green-600' : 'text-muted-foreground'}`}>
+                                    <CheckCircle2 className="w-5 h-5" />
+                                    <span>Confirm transaction on your wallet</span>
+                                </div>
+                                <div className={`flex items-center space-x-3 ${txStep === 2 ? 'text-primary' : isSuccess ? 'text-green-600' : 'text-muted-foreground'}`}>
+                                    <CheckCircle2 className="w-5 h-5" />
+                                    <span>Send to your wallet</span>
+                                </div>
+                            </div>
+
+                            {currentTxHash && (
+                                <div className={`mt-4 p-4 ${isSuccess ? 'bg-green-50 border border-green-200' : 'bg-muted/20'} rounded-lg`}>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <p className="text-sm text-muted-foreground">Transaction Hash:</p>
+                                        <a 
+                                            href={`https://base-sepolia.blockscout.com/tx/${currentTxHash}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-primary hover:text-primary/80 flex items-center space-x-1"
+                                        >
+                                            <span className="text-xs">View on Explorer</span>
+                                            <ExternalLink className="w-3 h-3" />
+                                        </a>
+                                    </div>
+                                    <p className="text-sm font-mono break-all">{currentTxHash}</p>
+                                </div>
+                            )}
+
+                            {isConfirming && (
+                                <div className="flex items-center justify-center py-4">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                                </div>
+                            )}
+
+                            {isSuccess && (
+                                <div className="flex items-center justify-center py-4 text-green-600">
+                                    <CheckCircle2 className="w-12 h-12" />
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 } 
