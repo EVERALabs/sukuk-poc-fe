@@ -307,9 +307,10 @@ export function SukukDataTable() {
                                                 </button>
                                                 <button
                                                     onClick={() => handleDistributeYield(sukuk.contract_address)}
-                                                    className="px-3 py-1.5 text-xs font-medium bg-green-50 text-green-600 hover:bg-green-100 rounded-lg transition-colors"
+                                                    disabled={isDistributing}
+                                                    className="px-3 py-1.5 text-xs font-medium bg-green-50 text-green-600 hover:bg-green-100 disabled:bg-muted/20 disabled:text-muted-foreground disabled:cursor-not-allowed rounded-lg transition-colors"
                                                 >
-                                                    Distribute Yield
+                                                    {isDistributing ? "Memproses..." : "Distribute Yield"}
                                                 </button>
                                             </div>
                                         </td>

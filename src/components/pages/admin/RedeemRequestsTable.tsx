@@ -5,13 +5,21 @@ import { Search, CheckCircle, XCircle } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { useRedemptions } from "@/hooks/useApi"
 import { formatCurrency } from "@/utils/api"
+import { SukukManagerAbi } from "@/libs/contracts/abi/SukukManagerAbi"
+import { SMART_CONTRACT_MANAGER_ADDRESS } from "@/libs/contracts/contractAddress"
+import { RedemptionRequest } from "@/libs/api"
+import { useWriteContract } from "wagmi"
 
 export function RedeemRequestsTable() {
     const [searchTerm, setSearchTerm] = useState("")
     const { data: redemptionData, loading, error, refetch } = useRedemptions()
     const [processingIds, setProcessingIds] = useState<Set<string>>(new Set())
-    
-    const filteredRequests = redemptionData?.redemptions.filter(request => 
+
+    const {
+        writeContractAsync: writeContractApprove,
+    } = useWriteContract();
+
+    const filteredRequests = redemptionData?.redemptions.filter(request =>
         request.metadata.sukuk_code.toLowerCase().includes(searchTerm.toLowerCase()) ||
         request.user.toLowerCase().includes(searchTerm.toLowerCase()) ||
         request.metadata.sukuk_title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -40,19 +48,25 @@ export function RedeemRequestsTable() {
         }
     }
 
-    const handleApprove = async (requestId: string) => {
+    const handleApprove = async (request: RedemptionRequest) => {
         try {
-            setProcessingIds(prev => new Set([...prev, requestId]))
-            // TODO: Implement approval logic with API
+            setProcessingIds(prev => new Set([...prev, request.request_id]))
+            const tx = await writeContractApprove({
+                address: SMART_CONTRACT_MANAGER_ADDRESS,
+                abi: SukukManagerAbi,
+                functionName: "approveRedemption",
+                args: [request.sukuk_address as `0x${string}`, request.user as `0x${string}`],
+            });
+
             await new Promise(resolve => setTimeout(resolve, 1000))
-            console.log('Approved request:', requestId)
+            console.log('Approved request:', request.request_id, tx)
             refetch()
         } catch (error) {
             console.error('Error approving request:', error)
         } finally {
             setProcessingIds(prev => {
                 const newSet = new Set(prev)
-                newSet.delete(requestId)
+                newSet.delete(request.request_id)
                 return newSet
             })
         }
@@ -151,7 +165,7 @@ export function RedeemRequestsTable() {
                             <tr>
                                 <td colSpan={6} className="py-8 text-center">
                                     <div className="text-red-600">Error: {error}</div>
-                                    <button 
+                                    <button
                                         onClick={refetch}
                                         className="mt-2 px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary/90"
                                     >
@@ -162,8 +176,8 @@ export function RedeemRequestsTable() {
                         ) : filteredRequests.length === 0 ? (
                             <tr>
                                 <td colSpan={6} className="py-8 text-center text-muted-foreground">
-                                    {searchTerm ? 
-                                        `Tidak ditemukan permintaan dengan kata kunci "${searchTerm}"` : 
+                                    {searchTerm ?
+                                        `Tidak ditemukan permintaan dengan kata kunci "${searchTerm}"` :
                                         "Belum ada permintaan redeem"
                                     }
                                 </td>
@@ -195,15 +209,15 @@ export function RedeemRequestsTable() {
                                     <td className="py-4 px-4">
                                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(request.status)}`}>
                                             {request.status === 'requested' ? 'Menunggu' :
-                                             request.status === 'approved' ? 'Disetujui' :
-                                             request.status === 'rejected' ? 'Ditolak' : request.status}
+                                                request.status === 'approved' ? 'Disetujui' :
+                                                    request.status === 'rejected' ? 'Ditolak' : request.status}
                                         </span>
                                     </td>
                                     <td className="py-4 px-4">
                                         {request.status === 'requested' && request.can_approve ? (
                                             <div className="flex items-center space-x-2">
                                                 <button
-                                                    onClick={() => handleApprove(request.request_id)}
+                                                    onClick={() => handleApprove(request)}
                                                     disabled={processingIds.has(request.request_id)}
                                                     className="px-3 py-1.5 text-xs font-medium bg-green-50 text-green-600 hover:bg-green-100 rounded-lg transition-colors disabled:opacity-50"
                                                 >
