@@ -1,76 +1,22 @@
 "use client"
 
 import { useState } from "react"
-import { Search, Edit, Trash2, Eye, Plus, X } from "lucide-react"
+import { Search, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { PrimaryButton } from "@/components/ui/button"
 import { AddSukukForm } from "./AddSukukForm"
-
-// Mock data untuk sukuk yang ada
-const mockSukukData = [
-    {
-        id: 1,
-        sukuk_code: "SR022-T5",
-        sukuk_title: "Sukuk Ritel Seri SR022-T5",
-        status: "berlangsung",
-        imbal_hasil: "6.55",
-        tenor: "5 Tahun",
-        kuota_nasional: 7000000000000,
-        minimum_pembelian: 1000000,
-        maksimum_pembelian: 10000000000,
-        periode_pembelian: "16 Mei - 18 Jun 2025",
-        jatuh_tempo: "2030-06-10",
-        tipe_kupon: "Fixed Rate",
-        created_at: "2025-05-16T00:00:00Z"
-    },
-    {
-        id: 2,
-        sukuk_code: "SBR014-T2",
-        sukuk_title: "Savings Bond Ritel Seri SBR014-T2",
-        status: "berlangsung",
-        imbal_hasil: "6.25",
-        tenor: "3 Bulan",
-        kuota_nasional: 10000000000000,
-        minimum_pembelian: 1000000,
-        maksimum_pembelian: 300000000,
-        periode_pembelian: "14 Jul - 07 Agt 2025",
-        jatuh_tempo: "2025-08-07",
-        tipe_kupon: "Fixed Rate",
-        created_at: "2025-07-14T00:00:00Z"
-    },
-    {
-        id: 3,
-        sukuk_code: "SWDI",
-        sukuk_title: "Sukuk Wayang Digital Indonesia",
-        status: "berlangsung",
-        imbal_hasil: "9.2",
-        tenor: "2 Tahun",
-        kuota_nasional: 180000000,
-        minimum_pembelian: 1500000,
-        maksimum_pembelian: 90000000,
-        periode_pembelian: "1 Juli - 31 Agustus 2025",
-        jatuh_tempo: "2027-08-15",
-        tipe_kupon: "Ijarah",
-        created_at: "2025-07-23T20:02:57Z"
-    }
-]
+import { useSukukPools } from "@/hooks/useApi"
+import { formatCurrency } from "@/utils/api"
 
 export function SukukDataTable() {
     const [searchTerm, setSearchTerm] = useState("")
     const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+    const { data: sukukPools, loading, error, refetch } = useSukukPools()
     
-    const filteredData = mockSukukData.filter(sukuk => 
+    const filteredData = sukukPools?.filter(sukuk => 
         sukuk.sukuk_code.toLowerCase().includes(searchTerm.toLowerCase()) ||
         sukuk.sukuk_title.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('id-ID', {
-            style: 'currency',
-            currency: 'IDR',
-            minimumFractionDigits: 0
-        }).format(amount)
-    }
+    ) || []
 
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('id-ID', {
@@ -91,6 +37,16 @@ export function SukukDataTable() {
             default:
                 return 'bg-gray-100 text-gray-800 border border-gray-200'
         }
+    }
+
+    const handleTakeSnapshot = async (sukukId: number) => {
+        // TODO: Implement snapshot functionality
+        console.log('Taking snapshot for sukuk:', sukukId)
+    }
+
+    const handleDistributeYield = async (sukukId: number) => {
+        // TODO: Implement yield distribution
+        console.log('Distributing yield for sukuk:', sukukId)
     }
 
     return (
@@ -117,7 +73,6 @@ export function SukukDataTable() {
                             onClick={() => setIsAddModalOpen(true)}
                             className="flex items-center space-x-2"
                         >
-                            <Plus className="w-4 h-4" />
                             <span>Tambah Sukuk</span>
                         </PrimaryButton>
                     </div>
@@ -126,24 +81,24 @@ export function SukukDataTable() {
                 {/* Stats Cards */}
                 <div className="grid grid-cols-4 gap-4 mb-6">
                     <div className="bg-primary/10 p-4 rounded-lg border border-primary/20">
-                        <div className="text-2xl font-bold text-primary">{mockSukukData.length}</div>
+                        <div className="text-2xl font-bold text-primary">{sukukPools?.length || 0}</div>
                         <div className="text-sm text-primary/70">Total Sukuk</div>
                     </div>
                     <div className="bg-green-50 p-4 rounded-lg border border-green-200">
                         <div className="text-2xl font-bold text-green-700">
-                            {mockSukukData.filter(s => s.status === 'berlangsung').length}
+                            {sukukPools?.filter(s => s.status.toLowerCase() === 'berlangsung')?.length || 0}
                         </div>
                         <div className="text-sm text-green-600">Aktif</div>
                     </div>
                     <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                         <div className="text-2xl font-bold text-blue-700">
-                            {mockSukukData.filter(s => s.status === 'mendatang').length}
+                            {sukukPools?.filter(s => s.status.toLowerCase() === 'mendatang')?.length || 0}
                         </div>
                         <div className="text-sm text-blue-600">Mendatang</div>
                     </div>
                     <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                         <div className="text-2xl font-bold text-gray-700">
-                            {mockSukukData.filter(s => s.status === 'berakhir').length}
+                            {sukukPools?.filter(s => s.status.toLowerCase() === 'berakhir')?.length || 0}
                         </div>
                         <div className="text-sm text-gray-600">Berakhir</div>
                     </div>
@@ -165,73 +120,93 @@ export function SukukDataTable() {
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredData.map((sukuk) => (
-                                <tr key={sukuk.id} className="border-b border-border hover:bg-accent/50">
-                                    <td className="py-4 px-4">
-                                        <div className="font-medium text-foreground">{sukuk.sukuk_code}</div>
-                                    </td>
-                                    <td className="py-4 px-4">
-                                        <div className="text-foreground max-w-xs">
-                                            <div className="font-medium truncate">{sukuk.sukuk_title}</div>
-                                            <div className="text-xs text-muted-foreground">{sukuk.tipe_kupon}</div>
-                                        </div>
-                                    </td>
-                                    <td className="py-4 px-4">
-                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(sukuk.status)}`}>
-                                            {sukuk.status}
-                                        </span>
-                                    </td>
-                                    <td className="py-4 px-4">
-                                        <span className="font-semibold text-green-600">{sukuk.imbal_hasil}%</span>
-                                    </td>
-                                    <td className="py-4 px-4 text-foreground">{sukuk.tenor}</td>
-                                    <td className="py-4 px-4">
-                                        <div className="text-sm">
-                                            <div className="font-medium text-foreground">{formatCurrency(sukuk.kuota_nasional)}</div>
-                                            <div className="text-xs text-muted-foreground">
-                                                Min: {formatCurrency(sukuk.minimum_pembelian)}
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="py-4 px-4 text-foreground text-sm">
-                                        {formatDate(sukuk.jatuh_tempo)}
-                                    </td>
-                                    <td className="py-4 px-4">
-                                        <div className="flex items-center space-x-2">
-                                            <button className="p-1 text-blue-600 hover:bg-blue-100 rounded transition-colors">
-                                                <Eye className="w-4 h-4" />
-                                            </button>
-                                            <button className="p-1 text-orange-600 hover:bg-orange-100 rounded transition-colors">
-                                                <Edit className="w-4 h-4" />
-                                            </button>
-                                            <button className="p-1 text-red-600 hover:bg-red-100 rounded transition-colors">
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
+                            {loading ? (
+                                <tr>
+                                    <td colSpan={8} className="py-8 text-center">
+                                        <div className="flex items-center justify-center">
+                                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                                            <span className="ml-2 text-muted-foreground">Memuat data sukuk...</span>
                                         </div>
                                     </td>
                                 </tr>
-                            ))}
+                            ) : error ? (
+                                <tr>
+                                    <td colSpan={8} className="py-8 text-center">
+                                        <div className="text-red-600">Error: {error}</div>
+                                        <button 
+                                            onClick={refetch}
+                                            className="mt-2 px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary/90"
+                                        >
+                                            Coba Lagi
+                                        </button>
+                                    </td>
+                                </tr>
+                            ) : filteredData.length === 0 ? (
+                                <tr>
+                                    <td colSpan={8} className="py-8 text-center text-muted-foreground">
+                                        {searchTerm ? `Tidak ditemukan sukuk dengan kata kunci "${searchTerm}"` : "Belum ada data sukuk"}
+                                    </td>
+                                </tr>
+                            ) : (
+                                filteredData.map((sukuk) => (
+                                    <tr key={sukuk.id} className="border-b border-border hover:bg-accent/50">
+                                        <td className="py-4 px-4">
+                                            <div className="font-medium text-foreground">{sukuk.sukuk_code}</div>
+                                        </td>
+                                        <td className="py-4 px-4">
+                                            <div className="text-foreground max-w-xs">
+                                                <div className="font-medium truncate">{sukuk.sukuk_title}</div>
+                                                <div className="text-xs text-muted-foreground">{sukuk.tipe_kupon}</div>
+                                            </div>
+                                        </td>
+                                        <td className="py-4 px-4">
+                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(sukuk.status)}`}>
+                                                {sukuk.status}
+                                            </span>
+                                        </td>
+                                        <td className="py-4 px-4">
+                                            <span className="font-semibold text-green-600">{sukuk.imbal_hasil}%</span>
+                                        </td>
+                                        <td className="py-4 px-4 text-foreground">{sukuk.tenor}</td>
+                                        <td className="py-4 px-4">
+                                            <div className="text-sm">
+                                                <div className="font-medium text-foreground">{formatCurrency(sukuk.kuota_nasional, 'IDR')}</div>
+                                                <div className="text-xs text-muted-foreground">
+                                                    Min: {formatCurrency(sukuk.minimum_pembelian, 'IDR')}
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="py-4 px-4 text-foreground text-sm">
+                                            {formatDate(sukuk.jatuh_tempo)}
+                                        </td>
+                                        <td className="py-4 px-4">
+                                            <div className="flex items-center space-x-2">
+                                                <button 
+                                                    onClick={() => handleTakeSnapshot(sukuk.id)}
+                                                    className="px-3 py-1.5 text-xs font-medium bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+                                                >
+                                                    Take Snapshot
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleDistributeYield(sukuk.id)}
+                                                    className="px-3 py-1.5 text-xs font-medium bg-green-50 text-green-600 hover:bg-green-100 rounded-lg transition-colors"
+                                                >
+                                                    Distribute Yield
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>
-
-                {filteredData.length === 0 && (
-                    <div className="text-center py-12">
-                        <div className="text-muted-foreground">
-                            {searchTerm ? 
-                                `Tidak ditemukan sukuk dengan kata kunci "${searchTerm}"` : 
-                                "Belum ada data sukuk"
-                            }
-                        </div>
-                    </div>
-                )}
             </div>
 
             {/* Add Sukuk Modal */}
             {isAddModalOpen && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                     <div className="bg-background rounded-xl border border-border max-w-4xl w-full max-h-[90vh] overflow-hidden">
-                        {/* Modal Header */}
                         <div className="flex items-center justify-between p-6 border-b border-border">
                             <div>
                                 <h2 className="text-xl font-bold text-foreground">Tambah Sukuk Baru</h2>
@@ -245,7 +220,6 @@ export function SukukDataTable() {
                             </button>
                         </div>
                         
-                        {/* Modal Content */}
                         <div className="overflow-y-auto max-h-[calc(90vh-80px)]">
                             <AddSukukForm onClose={() => setIsAddModalOpen(false)} />
                         </div>

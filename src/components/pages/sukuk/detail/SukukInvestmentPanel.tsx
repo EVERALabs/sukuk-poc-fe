@@ -185,7 +185,7 @@ export function SukukInvestmentPanel({ contractAddress }: SukukInvestmentPanelPr
     const principal = Number.parseFloat(investAmount) || 100000000 // Default 100M for example
     const annualRate = 6.55 / 100
     const monthlyRate = annualRate / 12
-    const monthlyCoupon = principal * monthlyRate
+    const monthlyCoupon = Number((principal * monthlyRate).toFixed(2)) // Fix to 2 decimal places
     const totalCoupons = monthlyCoupon * 60 // 5 years * 12 months
     const totalValue = principal + totalCoupons
 

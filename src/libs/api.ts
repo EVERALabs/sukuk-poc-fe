@@ -191,6 +191,46 @@ export interface OwnedSukukResponse {
   sukuk: OwnedSukuk[];
 }
 
+// Redemption Types
+export interface RedemptionRequest {
+  request_id: string;
+  user: string;
+  sukuk_address: string;
+  amount: string;
+  payment_token: string;
+  total_supply: string;
+  request_tx_hash: string;
+  request_time: string;
+  request_block: number;
+  status: "requested" | "approved" | "rejected";
+  approval_id?: string;
+  approval_tx_hash?: string;
+  approval_time?: string;
+  approval_block?: number;
+  approved_amount?: string;
+  metadata: {
+    id: number;
+    contract_address: string;
+    sukuk_code: string;
+    sukuk_title: string;
+    status: string;
+    imbal_hasil: string;
+    tenor: string;
+  };
+  can_approve: boolean;
+  requires_manager_auth: boolean;
+}
+
+export interface RedemptionsResponse {
+  total_count: number;
+  redemptions: RedemptionRequest[];
+  status_counts: {
+    approved: number;
+    requested: number;
+    rejected?: number;
+  };
+}
+
 // API Client Class
 class ApiClient {
   private client: AxiosInstance;
@@ -462,6 +502,26 @@ class ApiClient {
       method: "GET",
       url: "/analytics/sukuk-distribution",
     });
+  }
+
+  // Redemption API
+  async getRedemptions(): Promise<ApiResponse<RedemptionsResponse>> {
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}/redemptions?limit=50&offset=0`
+      );
+      return {
+        success: true,
+        data: response.data,
+      };
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(
+          error.response?.data?.message || error.message || "Network error"
+        );
+      }
+      throw new Error("Network error");
+    }
   }
 }
 
