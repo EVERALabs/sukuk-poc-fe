@@ -175,6 +175,14 @@ export interface OwnedSukuk {
     timestamp: string;
     sukuk_address: string;
   }[];
+  available_distributions: {
+    amount: string;
+    claimable: boolean;
+    claimed_amount: string;
+    distribution_id: number;
+    payment_token: string;
+    user_claimable_amount: string;
+  }[];
 }
 
 export interface OwnedSukukResponse {
@@ -326,11 +334,13 @@ class ApiClient {
 
   // Transaction History API
   async getTransactionHistory(
-    address: string, 
+    address: string,
     limit?: number
   ): Promise<ApiResponse<TransactionHistoryResponse>> {
     try {
-      const url = `${API_BASE_URL}/transaction-history/${address}${limit ? `?limit=${limit}` : ''}`;
+      const url = `${API_BASE_URL}/transaction-history/${address}${
+        limit ? `?limit=${limit}` : ""
+      }`;
       const response = await axios.get(url);
       return {
         success: true,
@@ -347,7 +357,9 @@ class ApiClient {
   }
 
   // Owned Sukuk API
-  async getOwnedSukuk(address: string): Promise<ApiResponse<OwnedSukukResponse>> {
+  async getOwnedSukuk(
+    address: string
+  ): Promise<ApiResponse<OwnedSukukResponse>> {
     try {
       const url = `${API_BASE_URL}/owned-sukuk/${address}`;
       const response = await axios.get(url);

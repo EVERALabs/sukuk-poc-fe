@@ -1,22 +1,14 @@
 "use client"
 
-import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
+import Image from "next/image";
 import { useRef, useState, useEffect } from "react"
 import { motion, useMotionValueEvent, useScroll } from "framer-motion"
-import Image from "next/image";
-import { cn } from "@/utils/style"
-import { PrimaryButton } from "@/components/ui/button"
+import { PrimaryButton } from "./ui/button"
 import { usePrivy, useWallets } from "@privy-io/react-auth"
+import { cn } from "@/utils/style";
+import Link from "next/link";
 
-interface HeaderProps {
-    centerNavItem?: string
-    navItems?: string[]
-}
-
-export function Header({ centerNavItem, navItems }: HeaderProps) {
-    const router = useRouter();
-    const pathname = usePathname();
+export function Header() {
     const { login, authenticated, logout } = usePrivy();
     const { wallets } = useWallets();
     const connectedWallet = wallets[0];
@@ -105,19 +97,6 @@ export function Header({ centerNavItem, navItems }: HeaderProps) {
                         <span className="text-green-400 text-sm md:text-xl font-bold">INDOSUKUK</span>
                     </Link>
                 </div>
-
-                {/* Desktop Navigation - Hidden on Mobile */}
-                <nav className="hidden md:flex items-center space-x-8">
-                    {navItems?.map((item) => (
-                        <Link
-                            key={item}
-                            href={`/sukuk/${item.toLowerCase()}`}
-                            className="text-sm font-medium transition-colors hover:text-green-400"
-                        >
-                            {item}
-                        </Link>
-                    ))}
-                </nav>
 
                 {/* Wallet Connection Button */}
                 <div className="relative" ref={dropdownRef}>

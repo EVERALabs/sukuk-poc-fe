@@ -1,10 +1,8 @@
 "use client";
 
 import { useState } from "react"
-import { GhostButton, OutlineButton } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@radix-ui/react-select"
-import { Search, Filter, Eye, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ArrowUpDown, ExternalLink } from "lucide-react"
+import { Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ArrowUpDown, ExternalLink } from "lucide-react"
 import { useTransactionHistory } from "@/hooks/useApi"
 import { TransactionActivity } from "@/libs/api"
 
