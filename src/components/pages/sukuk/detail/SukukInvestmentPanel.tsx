@@ -4,12 +4,11 @@ import { useState } from "react"
 import { PrimaryButton } from "@/components/ui/button"
 import { PrimaryInput } from "@/components/ui/input"
 import { toCurrency } from "@/utils/string"
-import { useAccount, useReadContract, useWriteContract } from "wagmi"
+import { useAccount, useWriteContract } from "wagmi"
 import { erc20Abi } from "viem"
 import { SMART_CONTRACT_IDRX_ADDRESS, SMART_CONTRACT_MANAGER_ADDRESS } from "@/libs/contracts/contractAddress"
 import { SukukManagerAbi } from "@/libs/contracts/abi/SukukManagerAbi"
 import { usePrivy } from "@privy-io/react-auth"
-import { IDRXAbi } from "@/libs/contracts/abi/IDRXAbi"
 
 interface SukukInvestmentPanelProps {
     contractAddress: string
@@ -34,28 +33,28 @@ export function SukukInvestmentPanel({ contractAddress }: SukukInvestmentPanelPr
         status: statusBuy,
     } = useWriteContract();
 
-    // const {
-    //     writeContractAsync: writeContractSell,
-    //     status: statusSell,
-    // } = useWriteContract();
+    const {
+        writeContractAsync: writeContractSell,
+        status: statusSell,
+    } = useWriteContract();
 
-    const { data: dataAllowanceIDRX, refetch: refetchAllowanceIDRX } =
-        useReadContract({
-            abi: IDRXAbi,
-            address: SMART_CONTRACT_IDRX_ADDRESS,
-            functionName: "allowance",
-            args: [address || "0x0000000000000000000000000000000000000000" as `0x${string}`, SMART_CONTRACT_MANAGER_ADDRESS],
-            query: {
-                enabled: !!address && isConnected,
-            },
-        });
+    // const { data: dataAllowanceIDRX, refetch: refetchAllowanceIDRX } =
+    //     useReadContract({
+    //         abi: IDRXAbi,
+    //         address: SMART_CONTRACT_IDRX_ADDRESS,
+    //         functionName: "allowance",
+    //         args: [address || "0x0000000000000000000000000000000000000000" as `0x${string}`, SMART_CONTRACT_MANAGER_ADDRESS],
+    //         query: {
+    //             enabled: !!address && isConnected,
+    //         },
+    //     });
     // Calculate button text based on state
     const getButtonText = () => {
         if (!isConnected) {
             return "Hubungkan Dompet";
         }
 
-        if (isApproving || isConfirming || isPending || statusBuy === "pending") {
+        if (isApproving || isConfirming || isPending || statusBuy === "pending" || statusSell === "pending") {
             return "Sedang di proses";
         }
 
@@ -76,7 +75,7 @@ export function SukukInvestmentPanel({ contractAddress }: SukukInvestmentPanelPr
             return false; // Allow wallet connection
         }
 
-        if (isApproving || isConfirming || isPending || statusBuy === "pending") {
+        if (isApproving || isConfirming || isPending || statusBuy === "pending" || statusSell === "pending") {
             return true; // Disable during processing
         }
 
@@ -102,7 +101,31 @@ export function SukukInvestmentPanel({ contractAddress }: SukukInvestmentPanelPr
                 functionName: "approve",
                 args: [SMART_CONTRACT_MANAGER_ADDRESS, BigInt(340282366920938463463374607431768211455)],
             });
-            await refetchAllowanceIDRX();
+            // await refetchAllowanceIDRX();
+        } catch (e) {
+            console.error("Error while approving: ", e);
+        } finally {
+            setApproving(false);
+            setConfirming(false);
+        }
+    };
+
+    const approveAllowanceSell = async () => {
+        if (!address) {
+            console.error("No wallet address available");
+            return;
+        }
+
+        try {
+            setApproving(true);
+
+            await writeContractAsyncAllowance({
+                address: contractAddress as `0x${string}`,
+                abi: erc20Abi,
+                functionName: "approve",
+                args: [SMART_CONTRACT_MANAGER_ADDRESS, BigInt(340282366920938463463374607431768211455)],
+            });
+            // await refetchAllowanceIDRX();
         } catch (e) {
             console.error("Error while approving: ", e);
         } finally {
@@ -114,6 +137,8 @@ export function SukukInvestmentPanel({ contractAddress }: SukukInvestmentPanelPr
     const buy = async (amount: bigint) => {
         if (isConfirming || !address) return;
         setConfirming(true);
+
+        await approveAllowanceBuy();
 
         try {
             const tx = await writeContractBuy({
@@ -133,27 +158,29 @@ export function SukukInvestmentPanel({ contractAddress }: SukukInvestmentPanelPr
         }
     };
 
-    // const sell = async (amount: bigint) => {
-    //     if (isConfirming || !address) return;
-    //     setConfirming(true);
+    const sell = async (amount: bigint) => {
+        if (isConfirming || !address) return;
+        setConfirming(true);
 
-    //     try {
-    //         const tx = await writeContractSell({
-    //             address: SMART_CONTRACT_MANAGER_ADDRESS,
-    //             abi: SukukManagerAbi,
-    //             functionName: "claimYield",
-    //             args: [contractAddress as `0x${string}`, amount, SMART_CONTRACT_IDRX_ADDRESS],
-    //         });
+        await approveAllowanceSell();
 
-    //         console.log("TX HASH:", tx);
-    //         setInvestAmount("");
-    //     } catch (e) {
-    //         console.error("ERROR WHILE BUYING", e);
-    //     } finally {
-    //         setApproving(false);
-    //         setConfirming(false);
-    //     }
-    // };
+        try {
+            const tx = await writeContractSell({
+                address: SMART_CONTRACT_MANAGER_ADDRESS,
+                abi: SukukManagerAbi,
+                functionName: "requestRedemption",
+                args: [contractAddress as `0x${string}`, amount, SMART_CONTRACT_IDRX_ADDRESS],
+            });
+
+            console.log("TX HASH:", tx);
+            setInvestAmount("");
+        } catch (e) {
+            console.error("ERROR WHILE SELLING", e);
+        } finally {
+            setApproving(false);
+            setConfirming(false);
+        }
+    };
 
     const handleInvest = async () => {
         if (!isConnected || !address) {
@@ -167,14 +194,9 @@ export function SukukInvestmentPanel({ contractAddress }: SukukInvestmentPanelPr
 
         try {
             if (activeTab === "beli") {
-                // if (dataAllowanceIDRX || 0n >= BigInt(investAmount)) {
                 await buy(BigInt(investAmount) * 100n);
-                // } else {
-                //     await approveAllowanceBuy();
-                // }
             } else {
-                // TODO: Implement sell functionality
-                console.log("Sell functionality not implemented yet");
+                await sell(BigInt(investAmount) * 100n);
             }
         } catch (e) {
             console.error("Error in handleInvest:", e);
