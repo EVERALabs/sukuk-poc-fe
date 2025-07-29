@@ -231,6 +231,24 @@ export interface RedemptionsResponse {
   };
 }
 
+export interface SukukSnapshot {
+  block_number: number;
+  eligible_count: number;
+  holder_count: number;
+  id: string;
+  snapshot_id: string;
+  sukuk_address: string;
+  timestamp: string;
+  total_supply: string;
+  tx_hash: string;
+}
+
+export interface SukukSnapshotsResponse {
+  snapshots: SukukSnapshot[];
+  sukuk_address: string;
+  total_count: number;
+}
+
 // API Client Class
 class ApiClient {
   private client: AxiosInstance;
@@ -501,6 +519,13 @@ class ApiClient {
     return this.request({
       method: "GET",
       url: "/analytics/sukuk-distribution",
+    });
+  }
+
+  async getSukukSnapshots(sukukAddress: string): Promise<ApiResponse<SukukSnapshotsResponse>> {
+    return this.request({
+      method: "GET",
+      url: `/sukuk/${sukukAddress}/snapshots`,
     });
   }
 
