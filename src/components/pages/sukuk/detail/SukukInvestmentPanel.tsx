@@ -63,15 +63,15 @@ export function SukukInvestmentPanel({ contractAddress }: SukukInvestmentPanelPr
             return "Sedang di proses";
         }
 
+        if (!investAmount || isNaN(Number(investAmount)) || Number(investAmount) <= 0) {
+            return activeTab === "beli" ? "Masukkan Jumlah Pembelian" : "Masukkan Jumlah Penjualan";
+        }
+
         if (activeTab === "beli") {
             return "Beli Sekarang";
         }
 
-        if (activeTab === "jual") {
-            return "Jual Sekarang";
-        }
-
-        return "Hubungkan Dompet";
+        return "Jual Sekarang";
     };
 
     // Calculate if button should be disabled
@@ -80,15 +80,7 @@ export function SukukInvestmentPanel({ contractAddress }: SukukInvestmentPanelPr
             return false; // Allow wallet connection
         }
 
-        if (isApproving || isConfirming || isPending || statusBuy === "pending" || statusSell === "pending") {
-            return true; // Disable during processing
-        }
-
-        if (!investAmount || isNaN(Number(investAmount)) || Number(investAmount) <= 0) {
-            return true; // Disable if no valid amount
-        }
-
-        return false;
+        return isApproving || isConfirming || isPending || statusBuy === "pending" || statusSell === "pending";
     };
 
     const approveAllowanceBuy = async () => {
@@ -323,7 +315,11 @@ export function SukukInvestmentPanel({ contractAddress }: SukukInvestmentPanelPr
                 <PrimaryButton
                     onClick={handleInvest}
                     disabled={isButtonDisabled()}
-                    className="w-full h-12 text-base bg-primary hover:bg-primary/90 disabled:bg-muted disabled:cursor-not-allowed text-primary-foreground text-center"
+                    className={`w-full h-12 text-base bg-primary text-primary-foreground ${
+                        isButtonDisabled()
+                            ? 'opacity-50 cursor-not-allowed'
+                            : 'hover:bg-primary/90'
+                    }`}
                 >
                     {getButtonText()}
                 </PrimaryButton>
