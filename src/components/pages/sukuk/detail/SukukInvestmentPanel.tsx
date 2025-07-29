@@ -110,29 +110,29 @@ export function SukukInvestmentPanel({ contractAddress }: SukukInvestmentPanelPr
         }
     };
 
-    const approveAllowanceSell = async () => {
-        if (!address) {
-            console.error("No wallet address available");
-            return;
-        }
+    // const approveAllowanceSell = async () => {
+    //     if (!address) {
+    //         console.error("No wallet address available");
+    //         return;
+    //     }
 
-        try {
-            setApproving(true);
+    //     try {
+    //         setApproving(true);
 
-            await writeContractAsyncAllowance({
-                address: contractAddress as `0x${string}`,
-                abi: erc20Abi,
-                functionName: "approve",
-                args: [SMART_CONTRACT_MANAGER_ADDRESS, BigInt(340282366920938463463374607431768211455)],
-            });
-            // await refetchAllowanceIDRX();
-        } catch (e) {
-            console.error("Error while approving: ", e);
-        } finally {
-            setApproving(false);
-            setConfirming(false);
-        }
-    };
+    //         await writeContractAsyncAllowance({
+    //             address: contractAddress as `0x${string}`,
+    //             abi: erc20Abi,
+    //             functionName: "approve",
+    //             args: [SMART_CONTRACT_MANAGER_ADDRESS, BigInt(340282366920938463463374607431768211455)],
+    //         });
+    //         // await refetchAllowanceIDRX();
+    //     } catch (e) {
+    //         console.error("Error while approving: ", e);
+    //     } finally {
+    //         setApproving(false);
+    //         setConfirming(false);
+    //     }
+    // };
 
     const buy = async (amount: bigint) => {
         if (isConfirming || !address) return;
@@ -162,7 +162,7 @@ export function SukukInvestmentPanel({ contractAddress }: SukukInvestmentPanelPr
         if (isConfirming || !address) return;
         setConfirming(true);
 
-        await approveAllowanceSell();
+        // await approveAllowanceSell();
 
         try {
             const tx = await writeContractSell({
