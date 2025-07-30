@@ -2,27 +2,28 @@
 import { useState } from "react"
 import { GhostButton } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search, TrendingUp, PieChart, Gift } from "lucide-react"
+import { Search, TrendingUp, PieChart, Gift, X, CheckCircle2, ExternalLink } from "lucide-react"
 import { useOwnedSukuk } from "@/hooks/useApi"
 import { formatCurrency } from "@/utils/api"
-import { calculatePortfolioSummary, formatSukukHolding } from "@/utils/api"
+import { calculatePortfolioSummary, formatSukukHolding, calculateTotalClaimableYield, calculateClaimableYield, getLatestClaimableDistributionId } from "@/utils/api"
 import { useWriteContract, useAccount } from "wagmi";
 import { OwnedSukuk } from "@/libs/api";
 import { SMART_CONTRACT_MANAGER_ADDRESS } from "@/libs/contracts/contractAddress";
 import { SukukManagerAbi } from "@/libs/contracts/abi/SukukManagerAbi";
 import { usePrivy } from "@privy-io/react-auth";
-
-// Test wallet address - in a real app, this would come from wallet connection
-const TEST_WALLET_ADDRESS = "0xf57093Ea18E5CfF6E7bB3bb770Ae9C492277A5a9"
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 export default function PortfolioPage() {
     const [searchTerm, setSearchTerm] = useState("")
     const [isConfirming, setConfirming] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [claimTxHash, setClaimTxHash] = useState<string | null>(null);
+    const [claimedSukuk, setClaimedSukuk] = useState<OwnedSukuk | null>(null);
 
     const { address, isConnected } = useAccount();
     const { login } = usePrivy();
 
-    const { data: ownedSukukData, loading, error, refetch } = useOwnedSukuk(TEST_WALLET_ADDRESS)
+    const { data: ownedSukukData, loading, error, refetch } = useOwnedSukuk(address || "")
 
     // Calculate portfolio summary from owned sukuk data
     const portfolioSummary = ownedSukukData ? calculatePortfolioSummary(ownedSukukData.sukuk) : {
@@ -30,6 +31,9 @@ export default function PortfolioPage() {
         totalInvestments: 0,
         averageReturn: 0
     }
+
+    // Calculate total claimable yield
+    const totalClaimableYield = ownedSukukData ? calculateTotalClaimableYield(ownedSukukData.sukuk) : 0
 
     // Filter sukuk holdings based on search term
     const filteredHoldings = ownedSukukData?.sukuk?.filter((sukuk) =>
@@ -64,33 +68,33 @@ export default function PortfolioPage() {
         setConfirming(true);
 
         try {
-            // Loop through all available distributions
-            for (const distribution of sukuk.available_distributions) {
-                try {
-                    console.log("Checking distribution:", distribution);
-                    console.log("Sukuk contract address:", sukuk.contract_address);
-                    console.log("Distribution ID:", distribution.distribution_id);
-                    console.log("Is claimable:", distribution.claimable);
-
-                    // Only proceed if the distribution is claimable
-                    if (!distribution.claimable) {
-                        console.log(`Distribution ${distribution.distribution_id} is not claimable, skipping...`);
-                        continue;
-                    }
-
-                    const tx = await writeContractClaim({
-                        address: SMART_CONTRACT_MANAGER_ADDRESS,
-                        abi: SukukManagerAbi,
-                        functionName: "claimYield",
-                        args: [sukuk.contract_address as `0x${string}`, BigInt(distribution.distribution_id)],
-                    });
-
-                    console.log("TX HASH for distribution", distribution.distribution_id, ":", tx);
-                } catch (distributionError) {
-                    console.error(`Failed to claim distribution ${distribution.distribution_id}:`, distributionError);
-                    // Continue with next distribution instead of stopping
-                }
+            // Get the latest claimable distribution ID
+            const distributionId = getLatestClaimableDistributionId(sukuk);
+            
+            if (distributionId === null) {
+                console.log("No claimable distributions found");
+                return;
             }
+
+            console.log("Claiming distribution:", distributionId);
+            console.log("Sukuk contract address:", sukuk.contract_address);
+
+            const tx = await writeContractClaim({
+                address: SMART_CONTRACT_MANAGER_ADDRESS,
+                abi: SukukManagerAbi,
+                functionName: "claimYield",
+                args: [sukuk.contract_address as `0x${string}`, BigInt(distributionId)],
+            });
+
+            console.log("TX HASH for distribution", distributionId, ":", tx);
+            
+            // Set success modal data
+            setClaimTxHash(tx);
+            setClaimedSukuk(sukuk);
+            setShowSuccessModal(true);
+            
+            // Refetch data after successful claim
+            await refetch();
 
         } catch (e) {
             console.error("ERROR WHILE CLAIMING", e);
@@ -118,13 +122,14 @@ export default function PortfolioPage() {
     }
 
     return (
-        <div className="min-h-[calc(100vh-80px)] bg-background px-4 md:px-6 py-4 md:py-6">
+        <ProtectedRoute>
+            <div className="min-h-[calc(100vh-80px)] bg-background px-4 md:px-6 py-4 md:py-6">
             <div className="p-4 md:p-6 mt-8 md:mt-12">
                 {/* Overview Section */}
                 <div className="mb-6 md:mb-8">
                     <h1 className="text-xl md:text-2xl font-bold text-foreground mb-4 md:mb-6">Ringkasan Portofolio</h1>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                         <div className="bg-card rounded-lg p-4 md:p-6 border border-border">
                             <p className="text-muted-foreground text-sm mb-2">Total Nilai Portofolio</p>
                             <p className="text-foreground text-xl md:text-2xl font-bold">
@@ -141,6 +146,15 @@ export default function PortfolioPage() {
                             <p className="text-muted-foreground text-sm mb-2">Rata-rata Imbal Hasil</p>
                             <p className="text-foreground text-xl md:text-2xl font-bold">
                                 {loading ? "..." : `${portfolioSummary.averageReturn.toFixed(2)}%`}
+                            </p>
+                        </div>
+                        <div className="bg-card rounded-lg p-4 md:p-6 border border-border">
+                            <p className="text-muted-foreground text-sm mb-2 flex items-center">
+                                <Gift className="w-4 h-4 mr-1" />
+                                Total Kupon Tersedia
+                            </p>
+                            <p className="text-green-600 text-xl md:text-2xl font-bold">
+                                {loading ? "..." : formatCurrency(totalClaimableYield, 'IDR')}
                             </p>
                         </div>
                     </div>
@@ -240,6 +254,7 @@ export default function PortfolioPage() {
                                         <th className="text-left py-4 px-6 font-medium">Nama Pool</th>
                                         <th className="text-left py-4 px-6 font-medium">Imbal Hasil</th>
                                         <th className="text-left py-4 px-6 font-medium">Jumlah Investasi</th>
+                                        <th className="text-left py-4 px-6 font-medium">Kupon Tersedia</th>
                                         <th className="text-left py-4 px-6 font-medium">Jangka Waktu</th>
                                         <th className="text-left py-4 px-6 font-medium">Status</th>
                                         <th className="text-left py-4 px-6 font-medium">Aksi</th>
@@ -248,7 +263,7 @@ export default function PortfolioPage() {
                                 <tbody>
                                     {loading ? (
                                         <tr>
-                                            <td colSpan={6} className="py-12 text-center">
+                                            <td colSpan={7} className="py-12 text-center">
                                                 <div className="flex items-center justify-center">
                                                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                                                     <span className="ml-2 text-muted-foreground">Memuat kepemilikan sukuk...</span>
@@ -257,7 +272,7 @@ export default function PortfolioPage() {
                                         </tr>
                                     ) : error ? (
                                         <tr>
-                                            <td colSpan={6} className="py-12 text-center">
+                                            <td colSpan={7} className="py-12 text-center">
                                                 <div className="text-muted-foreground">
                                                     <div className="w-16 h-16 bg-red-100 rounded-lg flex items-center justify-center mx-auto mb-4">
                                                         <span className="text-red-500 text-2xl">⚠️</span>
@@ -275,7 +290,7 @@ export default function PortfolioPage() {
                                         </tr>
                                     ) : filteredHoldings.length === 0 ? (
                                         <tr>
-                                            <td colSpan={6} className="py-12 text-center">
+                                            <td colSpan={7} className="py-12 text-center">
                                                 <div className="text-muted-foreground">
                                                     <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center mx-auto mb-4">
                                                         <Search className="w-8 h-8 text-muted-foreground" />
@@ -311,6 +326,9 @@ export default function PortfolioPage() {
                                                     <td className="py-4 px-6 text-foreground font-medium">
                                                         {formatCurrency(holding.investedAmount, 'IDR')}
                                                     </td>
+                                                    <td className="py-4 px-6 text-green-600 font-medium">
+                                                        {formatCurrency(calculateClaimableYield(sukuk), 'IDR')}
+                                                    </td>
                                                     <td className="py-4 px-6 text-foreground text-sm">
                                                         {sukuk.tenor || 'N/A'}
                                                     </td>
@@ -320,7 +338,7 @@ export default function PortfolioPage() {
                                                         </span>
                                                     </td>
                                                     <td className="py-4 px-6">
-                                                        {sukuk.available_distributions && sukuk.available_distributions.some(dist => dist.claimable) ? (
+                                                        {getLatestClaimableDistributionId(sukuk) !== null ? (
                                                             <button
                                                                 onClick={() => handleClaim(sukuk)}
                                                                 disabled={isConfirming || statusClaim === "pending"}
@@ -412,13 +430,17 @@ export default function PortfolioPage() {
                                                         <div className="text-muted-foreground">Jangka Waktu</div>
                                                         <div className="font-medium">{sukuk.tenor || 'N/A'}</div>
                                                     </div>
-                                                    <div className="col-span-2">
+                                                    <div>
                                                         <div className="text-muted-foreground">Jumlah Investasi</div>
                                                         <div className="font-medium">{formatCurrency(holding.investedAmount, 'IDR')}</div>
                                                     </div>
+                                                    <div>
+                                                        <div className="text-muted-foreground">Kupon Tersedia</div>
+                                                        <div className="font-medium text-green-600">{formatCurrency(calculateClaimableYield(sukuk), 'IDR')}</div>
+                                                    </div>
                                                 </div>
 
-                                                {sukuk.available_distributions && sukuk.available_distributions.some(dist => dist.claimable) ? (
+                                                {getLatestClaimableDistributionId(sukuk) !== null ? (
                                                     <button
                                                         onClick={() => handleClaim(sukuk)}
                                                         disabled={isConfirming || statusClaim === "pending"}
@@ -442,5 +464,118 @@ export default function PortfolioPage() {
                 </div>
             </div>
         </div>
+
+            {/* Success Modal for Claim */}
+            {showSuccessModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    {/* Backdrop */}
+                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+                    
+                    {/* Modal */}
+                    <div className="relative w-full max-w-md transform overflow-hidden rounded-2xl bg-white shadow-xl">
+                        {/* Close button */}
+                        <button
+                            onClick={() => {
+                                setShowSuccessModal(false);
+                                setClaimTxHash(null);
+                                setClaimedSukuk(null);
+                            }}
+                            className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 transition-colors z-10"
+                        >
+                            <X size={24} />
+                        </button>
+                        
+                        {/* Header section with animations */}
+                        <div className="relative overflow-hidden bg-gradient-to-br from-green-50 to-green-100 px-6 pt-12 pb-8">
+                            {/* Animated circles background */}
+                            <div className="absolute inset-0">
+                                <div className="absolute -top-4 -right-4 h-32 w-32 rounded-full bg-green-200/30 animate-pulse" />
+                                <div className="absolute -bottom-8 -left-8 h-40 w-40 rounded-full bg-green-300/20 animate-pulse" />
+                            </div>
+
+                            {/* Status icon */}
+                            <div className="relative mx-auto w-20 h-20 mb-4">
+                                <div className="absolute inset-0 bg-green-600 rounded-full flex items-center justify-center shadow-lg">
+                                    <CheckCircle2 className="w-12 h-12 text-white" strokeWidth={3} />
+                                </div>
+                            </div>
+
+                            {/* Logo */}
+                            <div className="relative mx-auto mb-4">
+                                <img
+                                    src="/images/indo-sukuk-logo.png"
+                                    alt="IndoSukuk"
+                                    className="mx-auto h-10"
+                                />
+                            </div>
+
+                            {/* Title */}
+                            <h3 className="text-2xl font-onestSemibold text-green-800 mb-2 text-center">
+                                Klaim Kupon Berhasil!
+                            </h3>
+
+                            {/* Description */}
+                            <p className="text-sm text-green-700 font-onestRegular text-center">
+                                Permintaan klaim kupon diterima, mohon menunggu 1-2 hari untuk proses pencairan dana ke dompet Anda.
+                            </p>
+                        </div>
+
+                        {/* Sukuk Details */}
+                        {claimedSukuk && (
+                            <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
+                                <div className="space-y-2">
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-600">Sukuk:</span>
+                                        <span className="font-medium text-gray-900">{claimedSukuk.sukuk_code}</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-600">Kupon Diklaim:</span>
+                                        <span className="font-medium text-green-600">
+                                            {formatCurrency(calculateClaimableYield(claimedSukuk), 'IDR')}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Transaction hash section */}
+                        {claimTxHash && (
+                            <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
+                                <div className="flex items-center justify-between mb-2">
+                                    <p className="text-sm text-gray-600 font-onestRegular">Hash Transaksi:</p>
+                                    <a 
+                                        href={`https://base-sepolia.blockscout.com/tx/${claimTxHash}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-green-600 hover:text-green-700 flex items-center gap-1"
+                                    >
+                                        <span className="text-xs font-onestMedium">Lihat di Explorer</span>
+                                        <ExternalLink className="w-3 h-3" />
+                                    </a>
+                                </div>
+                                <p className="text-xs font-mono text-gray-500 break-all bg-white p-2 rounded border">
+                                    {claimTxHash}
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Action button */}
+                        <div className="px-6 py-4 bg-white">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setShowSuccessModal(false);
+                                    setClaimTxHash(null);
+                                    setClaimedSukuk(null);
+                                }}
+                                className="w-full px-4 py-3 text-sm font-onestMedium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors shadow-sm"
+                            >
+                                Selesai
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </ProtectedRoute>
     )
 }

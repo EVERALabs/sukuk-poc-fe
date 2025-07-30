@@ -5,11 +5,14 @@ import { PrimaryButton } from "@/components/ui/button"
 import { PrimaryInput } from "@/components/ui/input"
 import { toCurrency } from "@/utils/string"
 import { useAccount, useWriteContract } from "wagmi"
-import { erc20Abi } from "viem"
+import { erc20Abi, formatUnits } from "viem"
 import { SMART_CONTRACT_IDRX_ADDRESS, SMART_CONTRACT_MANAGER_ADDRESS } from "@/libs/contracts/contractAddress"
 import { SukukManagerAbi } from "@/libs/contracts/abi/SukukManagerAbi"
 import { usePrivy } from "@privy-io/react-auth"
+import { useRouter } from "next/navigation"
 import { X, CheckCircle2, ExternalLink } from "lucide-react"
+import { useOwnedSukuk } from "@/hooks/useApi"
+import { calculateSukukBalance } from "@/utils/api"
 
 interface SukukInvestmentPanelProps {
     contractAddress: string
@@ -18,6 +21,24 @@ interface SukukInvestmentPanelProps {
 export function SukukInvestmentPanel({ contractAddress }: SukukInvestmentPanelProps) {
     const { address, isConnected } = useAccount();
     const { login } = usePrivy();
+    const router = useRouter();
+
+    // Enhanced debug logging for RPC troubleshooting
+    console.log("SukukInvestmentPanel Debug:", {
+        contractAddress,
+        address,
+        isConnected,
+        IDRX_ADDRESS: SMART_CONTRACT_IDRX_ADDRESS,
+        MANAGER_ADDRESS: SMART_CONTRACT_MANAGER_ADDRESS,
+    });
+    
+    // Validate contract addresses
+    const isValidSukukAddress = contractAddress && contractAddress.startsWith('0x') && contractAddress.length === 42;
+    
+    console.log("Contract Validation:", {
+        isValidSukukAddress,
+        sukuk_address: contractAddress
+    });
 
     const [activeTab, setActiveTab] = useState<"beli" | "jual">("beli")
     const [investAmount, setInvestAmount] = useState("")
@@ -27,6 +48,7 @@ export function SukukInvestmentPanel({ contractAddress }: SukukInvestmentPanelPr
     const [currentTxHash, setCurrentTxHash] = useState<string | null>(null);
     const [txStep, setTxStep] = useState<1 | 2>(1);
     const [isSuccess, setIsSuccess] = useState(false);
+    const [transactionType, setTransactionType] = useState<"beli" | "jual">("beli");
 
     const {
         writeContractAsync: writeContractAsyncAllowance,
@@ -43,16 +65,38 @@ export function SukukInvestmentPanel({ contractAddress }: SukukInvestmentPanelPr
         status: statusSell,
     } = useWriteContract();
 
-    // const { data: dataAllowanceIDRX, refetch: refetchAllowanceIDRX } =
-    //     useReadContract({
-    //         abi: IDRXAbi,
-    //         address: SMART_CONTRACT_IDRX_ADDRESS,
-    //         functionName: "allowance",
-    //         args: [address || "0x0000000000000000000000000000000000000000" as `0x${string}`, SMART_CONTRACT_MANAGER_ADDRESS],
-    //         query: {
-    //             enabled: !!address && isConnected,
-    //         },
-    //     });
+    // Fetch owned sukuk data to get balance from backend
+    const { data: ownedSukukData, loading: ownedSukukLoading } = useOwnedSukuk(address || "");
+    
+    // Find current sukuk from owned data
+    const currentSukuk = ownedSukukData?.sukuk.find(
+        sukuk => sukuk.contract_address.toLowerCase() === contractAddress.toLowerCase()
+    );
+    
+    // Calculate sukuk balance from backend data
+    const apiSukukBalance = currentSukuk ? calculateSukukBalance(currentSukuk) : 0;
+
+    // No IDRX balance needed for beli tab - user can enter any amount
+
+    // Format sukuk balance from backend data
+    const formattedSukukBalance = (() => {
+        if (!isConnected || !address) return "0";
+        if (ownedSukukLoading) return "Loading...";
+        
+        // Use API data for sukuk balance
+        if (apiSukukBalance > 0) {
+            console.log("Sukuk Balance (from API):", apiSukukBalance);
+            return apiSukukBalance.toString();
+        }
+        
+        // If no balance found in API data
+        if (!currentSukuk) {
+            console.log("No sukuk found in owned data for contract:", contractAddress);
+            return "0";
+        }
+        
+        return "0";
+    })();
     // Calculate button text based on state
     const getButtonText = () => {
         if (!isConnected) {
@@ -137,6 +181,7 @@ export function SukukInvestmentPanel({ contractAddress }: SukukInvestmentPanelPr
         setShowTxDialog(true);
         setTxStep(1);
         setIsSuccess(false);
+        setTransactionType("beli");
 
         try {
             await approveAllowanceBuy();
@@ -167,6 +212,7 @@ export function SukukInvestmentPanel({ contractAddress }: SukukInvestmentPanelPr
         setShowTxDialog(true);
         setTxStep(1);
         setIsSuccess(false);
+        setTransactionType("jual");
 
         try {
             const tx = await writeContractSell({
@@ -210,6 +256,18 @@ export function SukukInvestmentPanel({ contractAddress }: SukukInvestmentPanelPr
         }
     };
 
+    // Handle MAX button clicks
+    const handleMaxBeli = () => {
+        // No MAX functionality for beli tab - user can enter any amount
+        return;
+    };
+
+    const handleMaxJual = () => {
+        if (!ownedSukukLoading && formattedSukukBalance !== "Loading..." && formattedSukukBalance !== "0") {
+            setInvestAmount(formattedSukukBalance);
+        }
+    };
+
     // Calculate projections
     const principal = Number.parseFloat(investAmount) || 100000000 // Default 100M for example
     const annualRate = 6.55 / 100
@@ -247,10 +305,12 @@ export function SukukInvestmentPanel({ contractAddress }: SukukInvestmentPanelPr
                 {activeTab === "beli" ? (
                     <div className="space-y-4">
                         <PrimaryInput
-                            label="Nilai Jual"
+                            label="Nilai Beli"
                             placeholder="0"
                             value={investAmount}
                             onChange={(e) => setInvestAmount(e.target.value)}
+                            handleMax={handleMaxBeli}
+                            isShowBallance={false}
                             selector={
                                 <div className="whitespace-nowrap flex items-center gap-2 h-9 rounded-full hover:border-green-500 text-green-950 transition-all outline-0 ring-0 px-2">
                                     <span className="font-onestMedium text-lg transition-all text-text-300">
@@ -284,6 +344,9 @@ export function SukukInvestmentPanel({ contractAddress }: SukukInvestmentPanelPr
                             placeholder="0"
                             value={investAmount}
                             onChange={(e) => setInvestAmount(e.target.value)}
+                            balance={toCurrency(formattedSukukBalance)}
+                            handleMax={handleMaxJual}
+                            isShowBallance={true}
                             selector={
                                 <div className="whitespace-nowrap flex items-center gap-2 h-9 rounded-full hover:border-green-500 text-green-950 transition-all outline-0 ring-0 px-2">
                                     <span className="font-onestMedium text-lg transition-all text-text-300">
@@ -380,78 +443,135 @@ export function SukukInvestmentPanel({ contractAddress }: SukukInvestmentPanelPr
 
             {/* Transaction Confirmation Dialog */}
             {showTxDialog && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-background rounded-xl border border-border max-w-md w-full">
-                        <div className="flex items-center justify-between p-6 border-b border-border">
-                            <div>
-                                <h2 className="text-xl font-bold text-foreground">
-                                    {isSuccess ? "Transaction Successful" : "Confirm your transaction"}
-                                </h2>
-                                <p className="text-sm text-muted-foreground">
-                                    {isSuccess 
-                                        ? "Your transaction has been confirmed and processed successfully."
-                                        : "Review and confirm your token details before proceeding."
-                                    }
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    {/* Backdrop */}
+                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+                    
+                    {/* Modal */}
+                    <div className="relative w-full max-w-md transform overflow-hidden rounded-2xl bg-white shadow-xl">
+                        {/* Close button */}
+                        <button
+                            onClick={() => {
+                                if (!isConfirming) {
+                                    setShowTxDialog(false);
+                                    setCurrentTxHash(null);
+                                    setTxStep(1);
+                                    setIsSuccess(false);
+                                }
+                            }}
+                            className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 transition-colors z-10"
+                            disabled={isConfirming}
+                        >
+                            <X size={24} />
+                        </button>
+                        
+                        {/* Header section with animations */}
+                        <div className="relative overflow-hidden bg-gradient-to-br from-green-50 to-green-100 px-6 pt-12 pb-8">
+                            {/* Animated circles background */}
+                            <div className="absolute inset-0">
+                                <div className="absolute -top-4 -right-4 h-32 w-32 rounded-full bg-green-200/30 animate-pulse" />
+                                <div className="absolute -bottom-8 -left-8 h-40 w-40 rounded-full bg-green-300/20 animate-pulse" />
+                            </div>
+
+                            {/* Status icon */}
+                            <div className="relative mx-auto w-20 h-20 mb-4">
+                                <div className="absolute inset-0 bg-green-600 rounded-full flex items-center justify-center shadow-lg">
+                                    {isSuccess ? (
+                                        <CheckCircle2 className="w-12 h-12 text-white" strokeWidth={3} />
+                                    ) : (
+                                        <div className="animate-spin rounded-full h-8 w-8 border-2 border-white border-t-transparent" />
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Logo */}
+                            <div className="relative mx-auto mb-4">
+                                <img
+                                    src="/images/indo-sukuk-logo.png"
+                                    alt="IndoSukuk"
+                                    className="mx-auto h-10"
+                                />
+                            </div>
+
+                            {/* Title */}
+                            <h3 className="text-2xl font-onestSemibold text-green-800 mb-2 text-center">
+                                {isSuccess 
+                                    ? (transactionType === "jual" ? "Permintaan Jual Diterima!" : "Pembelian Berhasil!") 
+                                    : (transactionType === "jual" ? "Memproses Penjualan" : "Memproses Pembelian")
+                                }
+                            </h3>
+
+                            {/* Description */}
+                            <p className="text-sm text-green-700 font-onestRegular text-center">
+                                {isSuccess 
+                                    ? (transactionType === "jual" 
+                                        ? "Permintaan jual diterima, mohon menunggu 1-2 hari untuk proses pencairan dana."
+                                        : "Transaksi pembelian sukuk Anda telah berhasil diproses."
+                                    )
+                                    : "Silakan konfirmasi transaksi di dompet Anda"
+                                }
+                            </p>
+                        </div>
+
+                        {/* Transaction steps */}
+                        {!isSuccess && (
+                            <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
+                                <div className="space-y-3">
+                                    <div className={`flex items-center gap-3 ${txStep === 1 ? 'text-green-600' : txStep > 1 ? 'text-green-600' : 'text-gray-400'}`}>
+                                        <CheckCircle2 className="w-5 h-5" />
+                                        <span className="text-sm font-onestRegular">Konfirmasi di dompet</span>
+                                    </div>
+                                    <div className={`flex items-center gap-3 ${txStep === 2 ? 'text-green-600' : txStep > 2 ? 'text-green-600' : 'text-gray-400'}`}>
+                                        <CheckCircle2 className="w-5 h-5" />
+                                        <span className="text-sm font-onestRegular">Mengirim transaksi</span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Transaction hash section */}
+                        {currentTxHash && (
+                            <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
+                                <div className="flex items-center justify-between mb-2">
+                                    <p className="text-sm text-gray-600 font-onestRegular">Hash Transaksi:</p>
+                                    <a 
+                                        href={`https://base-sepolia.blockscout.com/tx/${currentTxHash}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-green-600 hover:text-green-700 flex items-center gap-1"
+                                    >
+                                        <span className="text-xs font-onestMedium">Lihat di Explorer</span>
+                                        <ExternalLink className="w-3 h-3" />
+                                    </a>
+                                </div>
+                                <p className="text-xs font-mono text-gray-500 break-all bg-white p-2 rounded border">
+                                    {currentTxHash}
                                 </p>
                             </div>
-                            <button
-                                onClick={() => {
-                                    if (!isConfirming) {
+                        )}
+
+                        {/* Action button */}
+                        {isSuccess && (
+                            <div className="px-6 py-4 bg-white">
+                                <button
+                                    type="button"
+                                    onClick={() => {
                                         setShowTxDialog(false);
                                         setCurrentTxHash(null);
                                         setTxStep(1);
                                         setIsSuccess(false);
-                                    }
-                                }}
-                                className="p-2 hover:bg-accent rounded-lg transition-colors"
-                                disabled={isConfirming}
-                            >
-                                <X className="w-5 h-5 text-muted-foreground" />
-                            </button>
-                        </div>
-
-                        <div className="p-6 space-y-4">
-                            <div className="space-y-4">
-                                <div className={`flex items-center space-x-3 ${txStep === 1 ? 'text-primary' : isSuccess ? 'text-green-600' : 'text-muted-foreground'}`}>
-                                    <CheckCircle2 className="w-5 h-5" />
-                                    <span>Confirm transaction on your wallet</span>
-                                </div>
-                                <div className={`flex items-center space-x-3 ${txStep === 2 ? 'text-primary' : isSuccess ? 'text-green-600' : 'text-muted-foreground'}`}>
-                                    <CheckCircle2 className="w-5 h-5" />
-                                    <span>Send to your wallet</span>
-                                </div>
+                                        
+                                        // Navigate to portfolio if it's a buy transaction
+                                        if (transactionType === "beli") {
+                                            router.push("/portfolio");
+                                        }
+                                    }}
+                                    className="w-full px-4 py-3 text-sm font-onestMedium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors shadow-sm"
+                                >
+                                    {transactionType === "beli" ? "Lihat Portofolio" : "Selesai"}
+                                </button>
                             </div>
-
-                            {currentTxHash && (
-                                <div className={`mt-4 p-4 ${isSuccess ? 'bg-green-50 border border-green-200' : 'bg-muted/20'} rounded-lg`}>
-                                    <div className="flex items-center justify-between mb-2">
-                                        <p className="text-sm text-muted-foreground">Transaction Hash:</p>
-                                        <a 
-                                            href={`https://base-sepolia.blockscout.com/tx/${currentTxHash}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-primary hover:text-primary/80 flex items-center space-x-1"
-                                        >
-                                            <span className="text-xs">View on Explorer</span>
-                                            <ExternalLink className="w-3 h-3" />
-                                        </a>
-                                    </div>
-                                    <p className="text-sm font-mono break-all">{currentTxHash}</p>
-                                </div>
-                            )}
-
-                            {isConfirming && (
-                                <div className="flex items-center justify-center py-4">
-                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                                </div>
-                            )}
-
-                            {isSuccess && (
-                                <div className="flex items-center justify-center py-4 text-green-600">
-                                    <CheckCircle2 className="w-12 h-12" />
-                                </div>
-                            )}
-                        </div>
+                        )}
                     </div>
                 </div>
             )}

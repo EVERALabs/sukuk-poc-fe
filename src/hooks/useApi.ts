@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useCallback } from 'react';
-import { apiClient, ApiResponse } from '@/libs/api';
+import { apiClient, ApiResponse, TransactionHistoryResponse, OwnedSukukResponse } from '@/libs/api';
 
 // Generic API hook
 export function useApi<T>(
@@ -16,7 +16,7 @@ export function useApi<T>(
       setLoading(true);
       setError(null);
       const response = await apiCall();
-      setData(response.data);
+      setData(response?.data || null);
     } catch (err: any) {
       setError(err.message || 'Terjadi kesalahan');
     } finally {
@@ -71,12 +71,66 @@ export function useTransaction(id: string) {
 
 // Transaction History hooks
 export function useTransactionHistory(address: string, limit?: number) {
-  return useApi(() => apiClient.getTransactionHistory(address, limit), [address, limit]);
+  const [data, setData] = useState<TransactionHistoryResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    if (!address) {
+      setData(null);
+      setLoading(false);
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await apiClient.getTransactionHistory(address, limit);
+      setData(response.data);
+    } catch (err: any) {
+      setError(err.message || 'Terjadi kesalahan');
+    } finally {
+      setLoading(false);
+    }
+  }, [address, limit]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { data, loading, error, refetch: fetchData };
 }
 
 // Owned Sukuk hooks
 export function useOwnedSukuk(address: string) {
-  return useApi(() => apiClient.getOwnedSukuk(address), [address]);
+  const [data, setData] = useState<OwnedSukukResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    if (!address) {
+      setData(null);
+      setLoading(false);
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await apiClient.getOwnedSukuk(address);
+      setData(response.data);
+    } catch (err: any) {
+      setError(err.message || 'Terjadi kesalahan');
+    } finally {
+      setLoading(false);
+    }
+  }, [address]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { data, loading, error, refetch: fetchData };
 }
 
 // User Profile hooks

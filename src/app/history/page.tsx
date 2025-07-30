@@ -5,15 +5,15 @@ import { Input } from "@/components/ui/input"
 import { Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ArrowUpDown, ExternalLink } from "lucide-react"
 import { useTransactionHistory } from "@/hooks/useApi"
 import { TransactionActivity } from "@/libs/api"
-
-// Test wallet address - in a real app, this would come from wallet connection
-const TEST_WALLET_ADDRESS = "0xf57093Ea18E5CfF6E7bB3bb770Ae9C492277A5a9"
+import { ProtectedRoute } from "@/components/ProtectedRoute"
+import { useAccount } from "wagmi"
 
 export default function HistoryPage() {
     const [limit, setLimit] = useState(10)
     const [searchTerm, setSearchTerm] = useState("")
+    const { address } = useAccount()
 
-    const { data: transactionHistory, loading, error, refetch } = useTransactionHistory(TEST_WALLET_ADDRESS, limit)
+    const { data: transactionHistory, loading, error, refetch } = useTransactionHistory(address || "", limit)
 
     // Filter transactions based on search term
     const filteredTransactions = transactionHistory?.activities?.filter((tx: TransactionActivity) =>
@@ -57,7 +57,8 @@ export default function HistoryPage() {
     }
 
     return (
-        <div className="min-h-[calc(100vh-80px)] bg-background px-4 md:px-6 py-4 md:py-6">
+        <ProtectedRoute>
+            <div className="min-h-[calc(100vh-80px)] bg-background px-4 md:px-6 py-4 md:py-6">
             <div className="p-6 mt-12">
                 {/* Header */}
                 <h1 className="text-2xl font-bold text-foreground mb-6">Riwayat Transaksi</h1>
@@ -296,5 +297,6 @@ export default function HistoryPage() {
                 </div>
             </div>
         </div>
+        </ProtectedRoute>
     )
 }
